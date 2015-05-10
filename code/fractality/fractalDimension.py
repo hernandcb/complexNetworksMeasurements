@@ -9,7 +9,6 @@
 #Calculate the fractal dimension of a network by using the box covering algorithm
 
 from boxCovering.greedyColoring import *
-from scipy import stats
 import matplotlib.pyplot as plt
 import math
  
