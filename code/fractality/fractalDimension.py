@@ -11,6 +11,7 @@
 from boxCovering.greedyColoring import *
 import matplotlib.pyplot as plt
 import math
+import sys
  
 
 def calculateFractalDimension(graph, max_box_size): 
@@ -35,6 +36,7 @@ def calculateFractalDimension(graph, max_box_size):
 		
 		# Print the values calculated 
 		print("{}, {} " . format( box_size, len(boxes[box_size -1])) )
+		sys.stdout.flush()
 	
 	# Calculate the slope of the normalized values
 	log_box_sizes = np.log(box_sizes)
@@ -43,6 +45,7 @@ def calculateFractalDimension(graph, max_box_size):
 	slope, intercept = np.polyfit( log_box_sizes, log_number_of_boxes, 1)
 	
 	print("fd, {}" . format( round( -1 * slope, 3) ))
+	sys.stdout.flush()
 	
 if __name__ == '__main__':
 	networks = [ #'../../data/realNetworks/Dolphin social network/dolphins.gml'
@@ -71,6 +74,7 @@ if __name__ == '__main__':
 		
 		# Information to be print is:
 		print("Box size, number of boxes")
-		
+		sys.stdout.flush()
+        
 		for i in range(10000):
 			calculateFractalDimension(graph, max_box_size)
