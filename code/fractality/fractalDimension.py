@@ -45,12 +45,12 @@ def calculateFractalDimension(graph, max_box_size):
 	print("fd, {}" . format( round( -1 * slope, 3) ))
 	
 if __name__ == '__main__':
-	networks = [ #'../../data/real networks/Dolphin social network/dolphins.gml'
-	#'../../data/real networks/American College football/football.gml'
-	#'../../data/real networks/Neural network/celegansneural.gml', 
-	#'../../data/real networks/Email network/email.gml'
-	'../../data/real networks/EColi/EColi.gml' 
-	#'../../data/real networks/Power grid/power.gml'
+	networks = [ #'../../data/realNetworks/Dolphin social network/dolphins.gml'
+	#'../../data/realNetworks/American College football/football.gml'
+	#'../../data/realNetworks/Neural network/celegansneural.gml', 
+	#'../../data/realNetworks/Email network/email.gml'
+	'../../data/realNetworks/EColi/EColi.gml' 
+	#'../../data/realNetworks/Power grid/power.gml'
 	]
 	
 	for filename in networks:
