@@ -1,3 +1,0 @@
-List of edges of the network of e-mail interchanges between members of the Univeristy Rovira i Virgili (Tarragona). 
-Data compiled by members of our group. 
-Please cite R. Guimera, L. Danon, A. Diaz-Guilera, F. Giralt and A. Arenas, Physical Review E , vol. 68, 065103(R), (2003).

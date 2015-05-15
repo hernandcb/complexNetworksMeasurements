@@ -1,9 +1,0 @@
-metabolic network data:
-
-gzipped ASCII file
-
-Each number represents substrate in celluar network of corresponding organism
-Data-format: From -> To (directed link)
-(number larger than 1000000 corresponds to intermediate state)
-
-For more information, please contact hjeong@nd.edu
