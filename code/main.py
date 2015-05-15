@@ -2,7 +2,7 @@ import sys
 import time
 import os
 import networkx as nx
-import fractality.fractalDimension as fd
+import fractalDimension.fractalDimension as fd
 
 if __name__ == '__main__':
     # Set the number of iterations per network

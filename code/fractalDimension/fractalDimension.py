@@ -8,8 +8,7 @@
 #
 #Calculate the fractal dimension of a network by using the box covering algorithm
 
-from fractality.fractalDimension.boxCovering.greedyColoring import *
-#from .boxCovering.greedyColoring import *
+from .boxCovering.greedyColoring import *
 import numpy as np
 import matplotlib.pyplot as plt
 import math
