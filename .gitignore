@@ -1,3 +1,6 @@
+# Files with the results of the algorithms
+results/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
