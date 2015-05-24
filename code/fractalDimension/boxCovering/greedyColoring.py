@@ -5,7 +5,7 @@
 # Tested in python-3.4.2 
 
 from __future__ import print_function
-from random import shuffle
+import random  as rnd
 import networkx as nx
 import matplotlib.pyplot as plt
 import numpy as np
@@ -24,7 +24,7 @@ def different(Colors):
         
 
 
-def greedyColoring(G, randomized=False):
+def greedyColoring(G, randomized=True, seed=8498962):
     """
     Compute the minimal set of boxes to cover a graph,
     from the paper:
@@ -48,7 +48,7 @@ def greedyColoring(G, randomized=False):
     # Create a random list with the node indexes
     nodes = list(range(1,num_nodes+1))
     if randomized:
-        shuffle(nodes)
+        rnd.shuffle(nodes)
 
     for j in range(diameter+2):
         C[nodes[0]][j] = 0
