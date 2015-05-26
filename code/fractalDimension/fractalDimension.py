@@ -11,9 +11,17 @@
 from .boxCovering.greedyColoring import *
 import random as rnd
 import numpy as np
+import time
  
 
-def calculateFractalDimension(graph, lb_max, iterations=10000, seed=3786689): 
+def calculateFractalDimension(graph, lb_max, iterations=10000, seed=3786689, print_results=False, print_dir=""): 
+
+	# Give a default name to the graph ('network') in case it's not defined
+	graphName = graph.graph.get("name", "network") + "_results"
+	date = time.strftime("%Y-%m-%d_%H%M%S")
+	resultsFileName = graphName + "_" + date
+	
+	file = open('out.txt', 'w')
 	rnd.seed(seed)
 	n = len(graph.nodes())
 	
@@ -22,14 +30,22 @@ def calculateFractalDimension(graph, lb_max, iterations=10000, seed=3786689):
 	results = {k: [] for k in range(1, lb_max+1)}	
 	
 	# Calculate the number of nodes for each box length - {iterations} times
-	for i in range(iterations): # 2 .. lb_max -1
+	for i in range(iterations): # 2 .. lb_max -13
 		boxes = greedyColoring(graph, True, rnd.randint(1, 9999))
+		if print_results:
+			file = open("{}_{}.out".format(resultsFileName, rnd.randint(1, 9999)) , 'w')
+			
 		for lb in range(1, lb_max+1): # 2 .. lb_max
 			results[lb].append( len(boxes[lb -1]) )
+			if print_results:
+				file.write("{} {}\n".format(lb, len(boxes[lb -1])) )
+		
+		if print_results:
+			file.close()
 
 	box_length = []
 	mean_nodes_per_box = []
-	print(results)
+
 	# Calculate the average number of nodes for each box length
 	for lb in range (1, lb_max + 1):
 		box_length.append(lb)
