@@ -12,36 +12,70 @@ from .boxCovering.greedyColoring import *
 import random as rnd
 import numpy as np
 import time
- 
+import os
 
+"""
+	This method creates the folder to store the results 
+	if not exists
+"""
+def prepareResultsFolder(print_dir, graphName):
+	resultsFolder = ""
+		
+	if print_dir != "":
+		resultsFolder += print_dir 
+			
+	resultsFolder += graphName + "/"
+			
+	if not os.path.exists(resultsFolder):
+		os.makedirs(os.path.dirname(resultsFolder))
+		
+	return resultsFolder
+
+"""
+	This method save to a file the value recieved by parameter
+"""
+def printToFile(resultsFolder, resultsFileName, values):
+	file = open("{}/{}_{}.out".format(resultsFolder, resultsFileName, rnd.randint(1, 999)) , 'w')
+	file.write(values)		
+	file.close()
+	
+
+"""
+	Method to calculate the fractal dimension using the box covering
+	algorithm
+"""
 def calculateFractalDimension(graph, lb_max, iterations=10000, seed=3786689, print_results=False, print_dir=""): 
 
 	# Give a default name to the graph ('network') in case it's not defined
 	graphName = graph.graph.get("name", "network") + "_results"
 	date = time.strftime("%Y-%m-%d_%H%M%S")
-	resultsFileName = graphName + "_" + date
+	stringResults =""
 	
-	file = open('out.txt', 'w')
+	# Set the variables used to print the results to a file
+	if print_results:
+		resultsFileName = graphName + "_" + date
+		resultsFolder = prepareResultsFolder(print_dir, graphName)
+		
+	
 	rnd.seed(seed)
 	n = len(graph.nodes())
 	
 	# Create a dictionary of lists to store all the number 
 	# of boxes obtained for each box length
 	results = {k: [] for k in range(1, lb_max+1)}	
-	
 	# Calculate the number of nodes for each box length - {iterations} times
 	for i in range(iterations): # 2 .. lb_max -13
 		boxes = greedyColoring(graph, True, rnd.randint(1, 9999))
-		if print_results:
-			file = open("{}_{}.out".format(resultsFileName, rnd.randint(1, 9999)) , 'w')
+		stringResults += "Run {}\n".format(i)
+		
 			
 		for lb in range(1, lb_max+1): # 2 .. lb_max
 			results[lb].append( len(boxes[lb -1]) )
 			if print_results:
-				file.write("{} {}\n".format(lb, len(boxes[lb -1])) )
+				stringResults += "{} {}\n".format(lb, len(boxes[lb -1]))
 		
-		if print_results:
-			file.close()
+	if print_results:
+		printToFile(resultsFolder, resultsFileName, stringResults)
 
 	box_length = []
 	mean_nodes_per_box = []
