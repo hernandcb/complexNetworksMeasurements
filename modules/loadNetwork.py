@@ -45,11 +45,18 @@ def store_network_distances(networkName):
 	None
 
 def load_network(networkName):
+	"""
+	This method returns the network called networkName if it is already
+	loaded. If it's not loaded the network is loaded from file.	
+	"""
 	global network
 	
 	if network is None:
-		query = ("SELECT * FROM networks WHERE name = {}".format(name))
+		query = ("SELECT filename FROM networks WHERE name = {}".format(name))
 		print(query)
+		for(id, name, description, finalname, length) in results:
+			print(initial_node, final_node)
+		
 	
 if __name__ == "__main__":
     load_network("randomNetworks/barabasi_albert_n10_m1.graph6")

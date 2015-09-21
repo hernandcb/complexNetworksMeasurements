@@ -2,15 +2,15 @@
 import mysql.connector as mysql
 from mysql.connector import errorcode
 
-from ..config import config 
+from modules.config import apconfig 
 
 db = None
 
 config = {
-  'user': config.get("database", "user"),
-  'password': config.get("database", "password"),
-  'host': config.get("database", "host"),
-  'database': config.get("database", "database")
+  'user': apconfig.get("database", "user"),
+  'password': apconfig.get("database", "password"),
+  'host': apconfig.get("database", "host"),
+  'database': apconfig.get("database", "db_name")
 }
 
 """
@@ -110,8 +110,8 @@ def makeQuery(query):
 
 
 
-#if __name__ == '__main__':
-def test():
+if __name__ == '__main__':
+#def test():
 	connect()
 	
 	results = makeQuery("SELECT * FROM network_distances WHERE initial_node = 1")

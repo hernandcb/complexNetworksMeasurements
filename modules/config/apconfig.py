@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
-import configparser
+import configparser, os
 
 config = configparser.ConfigParser()
-config.read("networkAnalysis.conf")
+path = os.path.abspath(os.path.dirname(__file__))
+
+config.read(os.path.join(path, "networkAnalysis.conf"))
 
 def get(section, variable):
 	return config.get(section, variable)
