@@ -1,1 +1,1 @@
-Algorithms to measure some complex networks' characteristics like robustness and fractality.
+Algorithms to perform some analysis on complex networks like robustness and fractality calculous..

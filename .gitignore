@@ -63,3 +63,5 @@ target/
 
 # Spyder 
 .spyder*
+
+.idea
