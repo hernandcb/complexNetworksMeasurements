@@ -1,11 +1,7 @@
-#
 #Code in Python (written by Hernan Carvajal):
-# 
 #For this code to run you'll need to install Python (http://www.python.org)
 #and Networkx (http://networkx.lanl.gov/).
-# 
-#File "fractalDimension.py" 
-#
+#File "fractalDimension.py"
 #Calculate the fractal dimension of a network by using the box covering algorithm
 
 from .boxCovering.greedyColoring import *
@@ -15,9 +11,11 @@ import time
 import os
 
 """
-	This method creates the folder to store the results 
-	if not exists
+    This method creates the folder to store the results
+    if not exists
 """
+
+
 def prepareResultsFolder(print_dir, graphName):
 	resultsFolder = ""
 		
