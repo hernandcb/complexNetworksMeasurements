@@ -7,25 +7,27 @@ import numpy as np
 import random as rnd
 
 
-def valid_color(not_valid_colors, max_value):
+def choose_color(not_valid_colors, valid_colors):
     """
-    This method returns a value selected randomly between 1 and max_value and
-    which should not be present in the list of not_valid_colors
+    This method returns a value selected randomly from the values present in the
+    set valid_colors which are not present in the list not_valid_colors.
 
-    I.E.
-    valid_color([1, 3, 5], 6)
-    can return any of [2, 4, 6]
+    If there is no valid colors from the list, then it is returned the maximum
+    value of both lists + 1
+
 
     Parameters
     -----------
     not_valid_colors: A list of not selectable numbers
-    max_value: The maximun value that can be returned.
+    valid_colors: A list of selectable numbers
     """
 
-    all_values = list(range(0, max_value))
-    possible_values = list(set(all_values) - set(not_valid_colors))
+    possible_values = list(valid_colors - not_valid_colors)
 
-    return rnd.choice(possible_values)
+    if possible_values:
+        return rnd.choice(possible_values)
+    else:
+        return max(valid_colors.union(not_valid_colors)) + 1
 
 
 def greedy_coloring(distances, num_nodes, diameter):
@@ -63,16 +65,19 @@ def greedy_coloring(distances, num_nodes, diameter):
     # Algorithm
     for i in nodes[1:]:
         for lb in range(2, diameter+1):
-            not_valid_colors = []
+            not_valid_colors = set()
+            valid_colors = set()
 
             for j in nodes:
                 if j == i:
                     break
 
                 if distances[i-1][j-1] >= lb:
-                    not_valid_colors.append(c[j][lb])
+                    not_valid_colors.add(c[j][lb])
+                else:
+                    valid_colors.add(c[j][lb])
 
-                c[i][lb] = valid_color(not_valid_colors, num_nodes)
+                c[i][lb] = choose_color(not_valid_colors, valid_colors)
 
     return c
 
@@ -107,7 +112,7 @@ def box_covering(g, distances=None, num_nodes=None, diameter=None):
         distances = nx.all_pairs_shortest_path_length(g)
 
     c = greedy_coloring(distances, num_nodes, diameter)
-
+    print(c)
     # Creation of boxes by color
     boxes = []
     for LB in range(1, diameter+2):
