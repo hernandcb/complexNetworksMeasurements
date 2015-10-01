@@ -1,95 +1,68 @@
-#Code in Python (written by Hernan Carvajal):
-#For this code to run you'll need to install Python (http://www.python.org)
-#and Networkx (http://networkx.lanl.gov/).
-#File "fractalDimension.py"
-#Calculate the fractal dimension of a network by using the box covering algorithm
+#!/usr/bin/python
+# Author: Hernán David Carvajal <carvajal.hernandavid at gmail.com>
+# Tested in python-3.4.3
 
-from .boxCovering.greedyColoring import *
-import random as rnd
+import sys
+import networkx as nx
 import numpy as np
-import time
-import os
-
-"""
-    This method creates the folder to store the results
-    if not exists
-"""
+from boxCovering.greedyColoring import *
 
 
-def prepareResultsFolder(print_dir, graphName):
-	resultsFolder = ""
-		
-	if print_dir != "":
-		resultsFolder += print_dir 
-			
-	resultsFolder += graphName + "/"
-			
-	if not os.path.exists(resultsFolder):
-		os.makedirs(os.path.dirname(resultsFolder))
-		
-	return resultsFolder
+def fractal_dimension(g, iterations=10000, debug=False):
+    """
+    This method computes the fractal dimension (D) of a network performing a box covering and analysing the relation
+    between the minimum number of boxes (Nb) required to cover the graph and the dimension of each box (Lb).
+    Then, given the relation:
 
-"""
-	This method save to a file the value recieved by parameter
-"""
-def printToFile(resultsFolder, resultsFileName, values):
-	file = open("{}/{}_{}.out".format(resultsFolder, resultsFileName, rnd.randint(1, 999)) , 'w')
-	file.write(values)		
-	file.close()
-	
+                Nb ~ Lb raised to D
 
-"""
-	Method to calculate the fractal dimension using the box covering
-	algorithm
-"""
-def calculateFractalDimension(graph, lb_max, iterations=10000, seed=3786689, print_results=False, print_dir=""): 
+    To get the minimum number of boxes required to cover a graph given a box length, this method repeat the box
+    covering several times (10.000 by default) and calculate the average value.
 
-	# Give a default name to the graph ('network') in case it's not defined
-	graphName = graph.graph.get("name", "network") + "_results"
-	date = time.strftime("%Y-%m-%d_%H%M%S")
-	stringResults =""
-	
-	# Set the variables used to print the results to a file
-	if print_results:
-		resultsFileName = graphName + "_" + date
-		resultsFolder = prepareResultsFolder(print_dir, graphName)
-		
-	
-	rnd.seed(seed)
-	n = len(graph.nodes())
-	
-	# Create a dictionary of lists to store all the number 
-	# of boxes obtained for each box length
-	results = {k: [] for k in range(1, lb_max+1)}	
-	# Calculate the number of nodes for each box length - {iterations} times
-	for i in range(iterations): # 2 .. lb_max -13
-		boxes = greedyColoring(graph, True, rnd.randint(1, 9999))
-		stringResults += "Run {}\n".format(i)
-		
-			
-		for lb in range(1, lb_max+1): # 2 .. lb_max
-			results[lb].append( len(boxes[lb -1]) )
-			if print_results:
-				stringResults += "{} {}\n".format(lb, len(boxes[lb -1]))
-		
-	if print_results:
-		printToFile(resultsFolder, resultsFileName, stringResults)
+    Parameters
+    ------------
+    g: A networkx graph
+    iterations: The number of times that the box covering algorithm will be run
+    debug: If this variable is set to True the results of each iteration are saved into a file called results.csv
 
-	box_length = []
-	mean_nodes_per_box = []
+    Returns
+    -----------
+    A float value representing the fractal dimension of the network.
+    """
+    diameter = nx.diameter(g)
+    distances = nx.all_pairs_shortest_path_length(g)
+    num_nodes = nx.number_of_nodes(g)
 
-	# Calculate the average number of nodes for each box length
-	for lb in range (1, lb_max + 1):
-		box_length.append(lb)
-		nodes_per_box = np.array(results[lb])
-		
-		mean_nodes_per_box.append( np.mean(nodes_per_box) )
-	
-	
-	# Fit a line and calculate the slope
-	log_box_length = np.log(np.array(box_length))
-	log_mean_number_of_nodes = np.log(np.array(mean_nodes_per_box))
+    results = np.empty((iterations, diameter+1), dtype=int)
 
-	slope, intercept = np.polyfit( log_box_length, log_mean_number_of_nodes, 1)
-	
-	return slope  # The slope of the line is the fractal dimension
+    for i in range(iterations):
+        result = number_of_boxes(g, distances, num_nodes, diameter)
+        for lb in range(1, diameter + 2):
+            try:
+                results[i][lb-1] = result[lb]
+            except KeyError:
+                print("Error: There was not found a box size {} in iteration {}".format(lb, i))
+
+    if debug:
+        np.savetxt("results.csv", results, fmt='%i')
+
+    boxes_length = np.arange(1, diameter+2)
+    mean_nodes_per_box = results.mean(axis=0)
+
+    # Fit a line and calculate the slope
+    log_box_length = np.log(boxes_length)
+    log_mean_number_of_nodes = np.log(mean_nodes_per_box)
+
+    slope, intercept = np.polyfit(log_box_length, log_mean_number_of_nodes, 1)
+
+    return slope
+
+
+def main(argv):
+    infile = argv[0]
+    g = nx.read_gml(infile)
+    print(fractal_dimension(g, 7, True))
+
+
+if __name__ == "__main__":
+    main(sys.argv[1:])

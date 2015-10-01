@@ -112,7 +112,7 @@ def box_covering(g, distances=None, num_nodes=None, diameter=None):
         distances = nx.all_pairs_shortest_path_length(g)
 
     c = greedy_coloring(distances, num_nodes, diameter)
-    print(c)
+
     # Creation of boxes by color
     boxes = []
     for LB in range(1, diameter+2):
@@ -142,11 +142,6 @@ def number_of_boxes(g, distances=None, num_nodes=None, diameter=None):
     possible box sizes.
     If the optional parameters are not passed they are calculated.
 
-    This method returns a dictionary specifying the number of boxes found for
-    every box length
-    { box_length: number_of_boxes}
-
-
     Parameters
     -------------------
     G:          Networkx graph
@@ -154,6 +149,11 @@ def number_of_boxes(g, distances=None, num_nodes=None, diameter=None):
                 nodes in ``G``
     num_nodes:  Number of nodes in the graph
     diameter:   Diameter of the graph
+
+    Returns
+    ------------------
+    This method returns a dictionary specifying the number of boxes found for
+    every box length:   { box_length: number_of_boxes}
 
     """
     if diameter is None:
