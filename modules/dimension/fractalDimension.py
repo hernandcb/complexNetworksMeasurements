@@ -3,12 +3,13 @@
 # Tested in python-3.4.3
 
 import sys
-import networkx as nx
-import numpy as np
-from boxCovering.greedyColoring import *
+import os
+import time
+import math
+from .boxCovering.greedyColoring import *
 
 
-def fractal_dimension(g, iterations=10000, debug=False):
+def fractal_dimension(g, iterations=10000, debug=True):
     """
     This method computes the fractal dimension (D) of a network performing a box covering and analysing the relation
     between the minimum number of boxes (Nb) required to cover the graph and the dimension of each box (Lb).
@@ -21,7 +22,7 @@ def fractal_dimension(g, iterations=10000, debug=False):
 
     Parameters
     ------------
-    g: A networkx graph
+    g: A networkit graph
     iterations: The number of times that the box covering algorithm will be run
     debug: If this variable is set to True the results of each iteration are saved into a file called results.csv
 
@@ -29,9 +30,10 @@ def fractal_dimension(g, iterations=10000, debug=False):
     -----------
     A float value representing the fractal dimension of the network.
     """
-    diameter = nx.diameter(g)
-    distances = nx.all_pairs_shortest_path_length(g)
-    num_nodes = nx.number_of_nodes(g)
+
+    num_nodes = g.numberOfNodes()
+    distances = all_pairs_shortest_path_length(g)
+    diameter = np.amax(distances)
 
     results = np.empty((iterations, diameter+1), dtype=int)
 
@@ -44,7 +46,9 @@ def fractal_dimension(g, iterations=10000, debug=False):
                 print("Error: There was not found a box size {} in iteration {}".format(lb, i))
 
     if debug:
-        np.savetxt("results.csv", results, fmt='%i')
+        datetime = time.strftime("%d-%m-%Y_%H%M%S")
+        filename = g.getName() + "_covering_" + datetime + ".csv"
+        np.savetxt(filename, results, fmt='%i')
 
     boxes_length = np.arange(1, diameter+2)
     mean_nodes_per_box = results.mean(axis=0)
@@ -55,13 +59,18 @@ def fractal_dimension(g, iterations=10000, debug=False):
 
     slope, intercept = np.polyfit(log_box_length, log_mean_number_of_nodes, 1)
 
-    return slope
+    return math.fabs(slope)
 
 
 def main(argv):
     infile = argv[0]
-    g = nx.read_gml(infile)
-    print(fractal_dimension(g, 7, True))
+    graph = nk.readGraph(infile, nk.Format.GML)
+    graph.setName(os.path.basename(infile))
+
+    if graph.isDirected():
+        graph = graph.toUndirected()
+
+    print(fractal_dimension(graph, 1, True))
 
 
 if __name__ == "__main__":

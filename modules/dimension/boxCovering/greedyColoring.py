@@ -2,7 +2,7 @@
 # Author: Hernán David Carvajal <carvajal.hernandavid at gmail.com>
 # Tested in python-3.4.3
 
-import networkx as nx
+import networkit as nk
 import numpy as np
 import random as rnd
 
@@ -82,6 +82,33 @@ def greedy_coloring(distances, num_nodes, diameter):
     return c
 
 
+def all_pairs_shortest_path_length(g):
+    """
+    This method creates a matrix containing all the shortest paths distances
+    between each pair of nodes in the network.
+
+    Parameters
+    ------------
+    A networkit graph
+
+    Returns
+    ------------
+    a matrix containing all the shortest paths distances.
+    """
+    n = g.numberOfNodes()
+
+    if n >= 65535:
+        distances = np.zeros((n, n), dtype=np.uint32)
+    else:
+        distances = np.zeros((n, n), dtype=np.uint16)
+
+    for i in range(n):
+        bfs = nk.graph.BFS(g, i).run()
+        distances[i, :] = np.array(bfs.getDistances())
+
+    return distances
+
+
 def box_covering(g, distances=None, num_nodes=None, diameter=None):
     """
     This method computes the boxes required to cover a graph with all the
@@ -94,7 +121,7 @@ def box_covering(g, distances=None, num_nodes=None, diameter=None):
 
     Parameters
     -------------------
-    G:          Networkx graph
+    G:          Networkit graph
     distances:  Matrix containing all the shortest path lengths between all
                 nodes in ``G``
     num_nodes:  Number of nodes in the graph
@@ -102,14 +129,14 @@ def box_covering(g, distances=None, num_nodes=None, diameter=None):
 
     """
 
-    if diameter is None:
-        diameter = nx.diameter(g)
-
     if num_nodes is None:
-        num_nodes = nx.number_of_nodes(g)
+        num_nodes = g.numberOfNodes()
 
     if distances is None:
-        distances = nx.all_pairs_shortest_path_length(g)
+        distances = all_pairs_shortest_path_length(g)
+
+    if diameter is None:
+        diameter = np.amax(distances)
 
     c = greedy_coloring(distances, num_nodes, diameter)
 
@@ -144,7 +171,7 @@ def number_of_boxes(g, distances=None, num_nodes=None, diameter=None):
 
     Parameters
     -------------------
-    G:          Networkx graph
+    G:          Networkit graph
     distances:  Matrix containing all the shortest path lengths between all
                 nodes in ``G``
     num_nodes:  Number of nodes in the graph
@@ -156,14 +183,15 @@ def number_of_boxes(g, distances=None, num_nodes=None, diameter=None):
     every box length:   { box_length: number_of_boxes}
 
     """
-    if diameter is None:
-        diameter = nx.diameter(g)
 
     if num_nodes is None:
-        num_nodes = nx.number_of_nodes(g)
+        num_nodes = g.numberOfNodes()
 
     if distances is None:
-        distances = nx.all_pairs_shortest_path_length(g)
+        distances = all_pairs_shortest_path_length(g)
+
+    if diameter is None:
+        diameter = np.amax(distances)
 
     c = greedy_coloring(distances, num_nodes, diameter)
 
@@ -182,9 +210,16 @@ def number_of_boxes(g, distances=None, num_nodes=None, diameter=None):
 
 
 if __name__ == '__main__':
-    G = nx.Graph()
-    G.add_nodes_from([0, 1, 2, 3, 4, 5])
-    G.add_edges_from([(0, 4), (0, 5), (1, 2), (1, 3), (2, 5), (4, 5)])
+    G = nk.Graph()
+    for i in range(6):
+        G.addNode()
+
+    G.addEdge(0, 4)
+    G.addEdge(0, 5)
+    G.addEdge(1, 2)
+    G.addEdge(1, 3)
+    G.addEdge(2, 5)
+    G.addEdge(4, 5)
 
     _boxes = box_covering(G)
     for _box in _boxes:
