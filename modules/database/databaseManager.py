@@ -1,8 +1,8 @@
 #!/usr/bin/python
+from modules.config import apconfig
 import mysql.connector as mysql
 from mysql.connector import errorcode
 
-from modules.config import apconfig 
 
 db = None
 
