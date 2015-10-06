@@ -11,20 +11,23 @@ from .boxCovering.greedyColoring import *
 
 def fractal_dimension(g, iterations=10000, debug=True):
     """
-    This method computes the fractal dimension (D) of a network performing a box covering and analysing the relation
-    between the minimum number of boxes (Nb) required to cover the graph and the dimension of each box (Lb).
+    This method computes the fractal dimension (D) of a network performing a box
+    covering and analysing the relation between the minimum number of boxes (Nb)
+    required to cover the graph and the dimension of each box (Lb).
     Then, given the relation:
 
                 Nb ~ Lb raised to D
 
-    To get the minimum number of boxes required to cover a graph given a box length, this method repeat the box
-    covering several times (10.000 by default) and calculate the average value.
+    To get the minimum number of boxes required to cover a graph given a box
+    length, this method repeat the box covering several times (10.000 by
+    default) and calculate the average value.
 
     Parameters
     ------------
     g: A networkit graph
     iterations: The number of times that the box covering algorithm will be run
-    debug: If this variable is set to True the results of each iteration are saved into a file called results.csv
+    debug: If this variable is set to True the results of each iteration are
+            saved into a file called results.csv
 
     Returns
     -----------
@@ -43,7 +46,8 @@ def fractal_dimension(g, iterations=10000, debug=True):
             try:
                 results[i][lb-1] = result[lb]
             except KeyError:
-                print("Error: There was not found a box size {} in iteration {}".format(lb, i))
+                msg = "Error: There was not found a box size {} in iteration {}"
+                print(msg.format(lb, i))
 
     if debug:
         datetime = time.strftime("%d-%m-%Y_%H%M%S")
