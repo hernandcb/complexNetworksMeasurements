@@ -69,8 +69,8 @@ def test_random_networks():
         results_file_name = results_folder
         results_file_name += network_name + "_" + current_time + ".results"
 
-        with open(results_file_name, 'a') as results_file:
-            test(network, methods["fractalDimension"], results_file)
+        with open(results_file_name, 'a') as file:
+            test(network, methods["fractalDimension"], results_file=file)
 
 
 def get_files(folder="", extension=""):
