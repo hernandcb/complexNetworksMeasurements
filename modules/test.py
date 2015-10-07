@@ -12,7 +12,7 @@ random_networks_folder = apconfig.get_random_networks_full_path()
 networks = {
     "dolphins": real_networks_folder + 'Dolphin social network/dolphins.gml',
     "football": real_networks_folder + 'American College football/football.gml',
-    "celegans": real_networks_folder + 'Neural network/celegansneural.gml',
+    "celegans": real_networks_folder + 'CElegans/celegans.gml',
     "email": real_networks_folder + 'Email network/email.gml',
     "eColi": real_networks_folder + 'EColi/EColi.gml',
     "power": real_networks_folder + 'Power grid/power.gml'
