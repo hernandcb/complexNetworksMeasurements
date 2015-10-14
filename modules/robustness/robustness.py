@@ -15,7 +15,7 @@ centrality = {
     "degree": nk.centrality.DegreeCentrality,
     "closeness": nk.centrality.Closeness,
     "betweenness": nk.centrality.Betweenness,
-    #"eigenvector": nk.centrality.EigenvectorCentrality,
+    "eigenvector": nk.centrality.EigenvectorCentrality,
     "random": None
 }
 
