@@ -1,10 +1,18 @@
 #!/usr/bin/python
 # Author: Hernán David Carvajal <carvajal.hernandavid at gmail.com>
 # Tested in python-3.4.3
+from _testbuffer import ndarray
 
 import networkit as nk
-import numpy as np
 import random as rnd
+import numpy as np
+cimport cython
+from numpy.matrixlib.defmatrix import matrix
+
+cimport numpy as np
+
+DTYPE = np.int
+ctypedef np.int_t DTYPE_t
 
 
 def choose_color(not_valid_colors, valid_colors):
@@ -30,7 +38,8 @@ def choose_color(not_valid_colors, valid_colors):
         return max(valid_colors.union(not_valid_colors)) + 1
 
 
-def greedy_coloring(distances, num_nodes, diameter):
+@cython.boundscheck(False)
+def greedy_coloring(np.ndarray[DTYPE_t, ndim=2] distances, int num_nodes, int diameter):
     """
     Compute the minimal set of boxes to cover a graph given a box length.
     This method uses the box values between [2, network_diameter]
@@ -50,7 +59,9 @@ def greedy_coloring(distances, num_nodes, diameter):
     http://iopscience.iop.org/1742-5468/2007/03/P03006/
     """
 
-    c = np.empty((num_nodes+1, diameter+2), dtype=int)
+    cdef int  i, lb, j
+
+    cdef np.ndarray[DTYPE_t, ndim=2] c = np.empty((num_nodes+1, diameter+2), dtype=DTYPE)
     c.fill(-1)
     # Matrix C will not use the 0 column and 0 row to
     # let the algorithm look very similar to the paper
@@ -92,12 +103,9 @@ def all_pairs_shortest_path_length(g):
     ------------
     a matrix containing all the shortest paths distances.
     """
-    n = g.numberOfNodes()
-
-    if n >= 65535:
-        distances = np.zeros((n, n), dtype=np.uint32)
-    else:
-        distances = np.zeros((n, n), dtype=np.uint16)
+    cdef int i
+    cdef int n = g.numberOfNodes()
+    cdef np.ndarray[DTYPE_t, ndim=2] distances = np.zeros((n, n), dtype=DTYPE)
 
     for i in range(n):
         bfs = nk.graph.BFS(g, i).run()
@@ -160,7 +168,7 @@ def box_covering(g, distances=None, num_nodes=None, diameter=None):
     return boxes
 
 
-def number_of_boxes(g, distances=None, num_nodes=None, diameter=None):
+def number_of_boxes(g, np.ndarray[DTYPE_t, ndim=2] distances, int num_nodes, int diameter):
     """
     This method computes the boxes required to cover a graph with all the
     possible box sizes.
@@ -181,17 +189,8 @@ def number_of_boxes(g, distances=None, num_nodes=None, diameter=None):
 
     """
 
-    if num_nodes is None:
-        num_nodes = g.numberOfNodes()
-
-    if distances is None:
-        distances = all_pairs_shortest_path_length(g)
-
-    print(np.amax(distances))
-    if diameter is None:
-        diameter = np.amax(distances)
-
-    c = greedy_coloring(distances, num_nodes, diameter)
+    cdef np.ndarray[DTYPE_t, ndim=2] c = greedy_coloring(distances, num_nodes, diameter)
+    cdef int lb
 
     boxes = {}
     for lb in range(1, diameter+2):
@@ -207,6 +206,7 @@ def number_of_boxes(g, distances=None, num_nodes=None, diameter=None):
     return boxes
 
 
+@cython.boundscheck(False)
 def test(G):
     """
     _boxes = box_covering(G)
@@ -217,7 +217,11 @@ def test(G):
     if G.isDirected():
         G = G.toUndirected()
 
-    print(number_of_boxes(G))
+    cdef int num_nodes = G.numberOfNodes()
+    cdef np.ndarray[DTYPE_t, ndim=2] distances = all_pairs_shortest_path_length(G)
+    cdef int diameter = np.amax(distances)
+
+    print(number_of_boxes(G, distances, num_nodes, diameter))
 
 
 if __name__ == '__main__':
