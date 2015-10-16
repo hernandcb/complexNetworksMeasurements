@@ -217,7 +217,8 @@ def test(G):
     if G.isDirected():
         G = G.toUndirected()
 
-    print(number_of_boxes(G))
+    number_of_boxes(G)
+    # print(number_of_boxes(G))
 
 
 if __name__ == '__main__':

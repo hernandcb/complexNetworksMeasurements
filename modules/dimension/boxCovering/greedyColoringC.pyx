@@ -6,16 +6,16 @@ from _testbuffer import ndarray
 import networkit as nk
 import random as rnd
 import numpy as np
-cimport cython
-from numpy.matrixlib.defmatrix import matrix
 
+cimport cython
 cimport numpy as np
+from libc.stdlib cimport malloc, free
 
 DTYPE = np.int
 ctypedef np.int_t DTYPE_t
 
 
-def choose_color(not_valid_colors, valid_colors):
+cdef choose_color(set not_valid_colors, set valid_colors):
     """
     This method returns a value selected randomly from the values present in the
     set valid_colors which are not present in the list not_valid_colors.
@@ -30,7 +30,7 @@ def choose_color(not_valid_colors, valid_colors):
     valid_colors: A list of selectable numbers
     """
 
-    possible_values = list(valid_colors - not_valid_colors)
+    cdef list possible_values = list(valid_colors - not_valid_colors)
 
     if possible_values:
         return rnd.choice(possible_values)
@@ -39,7 +39,7 @@ def choose_color(not_valid_colors, valid_colors):
 
 
 @cython.boundscheck(False)
-def greedy_coloring(np.ndarray[DTYPE_t, ndim=2] distances, int num_nodes, int diameter):
+cdef np.ndarray[DTYPE_t, ndim=2] greedy_coloring(np.ndarray[DTYPE_t, ndim=2] distances, int num_nodes, int diameter):
     """
     Compute the minimal set of boxes to cover a graph given a box length.
     This method uses the box values between [2, network_diameter]
@@ -58,36 +58,59 @@ def greedy_coloring(np.ndarray[DTYPE_t, ndim=2] distances, int num_nodes, int di
     2007(03):P03006, 2007.
     http://iopscience.iop.org/1742-5468/2007/03/P03006/
     """
-
-    cdef int  i, lb, j
-
+    cdef int  i, lb, j, index, index2
     cdef np.ndarray[DTYPE_t, ndim=2] c = np.empty((num_nodes+1, diameter+2), dtype=DTYPE)
+
+    cdef int *nodes
+    nodes = <int *>malloc(num_nodes * cython.sizeof(int))
+
+    cdef set valid_colors, not_valid_colors
+
+    if nodes is NULL:
+        raise MemoryError()
+
     c.fill(-1)
     # Matrix C will not use the 0 column and 0 row to
     # let the algorithm look very similar to the paper
     # pseudo-code
 
-    nodes = list(range(1, num_nodes+1))
-    rnd.shuffle(nodes)
+    for i in range(num_nodes):
+        nodes[i] = i+1
+
+    # nodes = list(range(1, num_nodes+1))
+    shuffle(nodes, num_nodes)
 
     c[nodes[0], :] = 0
 
     # Algorithm
-    for i in nodes[1:]:
+    for index in range(1, num_nodes+1):
+        i = nodes[index]
         for lb in range(2, diameter+1):
             not_valid_colors = set()
             valid_colors = set()
 
-            for j in nodes[:i]:
+            for index2 in range(index):
+                j = nodes[index2]
 
                 if distances[i-1, j-1] >= lb:
                     not_valid_colors.add(c[j, lb])
                 else:
                     valid_colors.add(c[j, lb])
 
-                c[i, lb] = choose_color(not_valid_colors, valid_colors)
+            c[i, lb] = choose_color(not_valid_colors, valid_colors)
 
+    with nogil:
+        free(nodes)
     return c
+
+
+cdef int * shuffle(int *lst, int size):
+  '''A modern Fisher-Yates shuffle popularized by Knuth.
+  '''
+  for i in range(size-1, -1, -1):
+    j = cython.declare(cython.int, rnd.randint(0, i))
+    lst[j], lst[i] = lst[i], lst[j]
+  return lst
 
 
 def all_pairs_shortest_path_length(g):
@@ -109,7 +132,7 @@ def all_pairs_shortest_path_length(g):
 
     for i in range(n):
         bfs = nk.graph.BFS(g, i).run()
-        distances[i, :] = np.array(bfs.getDistances())
+        distances[i, :] = bfs.getDistances()
 
     return distances
 
@@ -143,8 +166,7 @@ def box_covering(g, distances=None, num_nodes=None, diameter=None):
     if diameter is None:
         diameter = np.amax(distances)
 
-    c = greedy_coloring(distances, num_nodes, diameter)
-
+    cdef np.ndarray[DTYPE_t, ndim=2] c = greedy_coloring(distances, num_nodes, diameter)
     # Creation of boxes by color
     boxes = []
     for LB in range(1, diameter+2):
@@ -164,7 +186,6 @@ def box_covering(g, distances=None, num_nodes=None, diameter=None):
                 box[color].append(j)
 
         boxes.append(box)
-
     return boxes
 
 
@@ -188,11 +209,10 @@ def number_of_boxes(g, np.ndarray[DTYPE_t, ndim=2] distances, int num_nodes, int
     every box length:   { box_length: number_of_boxes}
 
     """
-
     cdef np.ndarray[DTYPE_t, ndim=2] c = greedy_coloring(distances, num_nodes, diameter)
     cdef int lb
 
-    boxes = {}
+    cdef dict boxes = {}
     for lb in range(1, diameter+2):
         if lb is 1:
             # Each node is in a different box
@@ -221,7 +241,7 @@ def test(G):
     cdef np.ndarray[DTYPE_t, ndim=2] distances = all_pairs_shortest_path_length(G)
     cdef int diameter = np.amax(distances)
 
-    print(number_of_boxes(G, distances, num_nodes, diameter))
+    # print(number_of_boxes(G, distances, num_nodes, diameter))
 
 
 if __name__ == '__main__':

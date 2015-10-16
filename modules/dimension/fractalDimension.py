@@ -6,7 +6,11 @@ import sys
 import os
 import time
 import math
-from .boxCovering.greedyColoring import *
+
+import pyximport
+pyximport.install()
+
+from .boxCovering.greedyColoringC import *
 
 
 def fractal_dimension(g, iterations=10000, debug=True):
