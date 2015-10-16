@@ -4,21 +4,19 @@
 from _testbuffer import ndarray
 
 import networkit as nk
-import random as rnd
 import numpy as np
 
 cimport cython
 cimport numpy as np
-from libc.stdlib cimport malloc, free
+from libc.stdlib cimport malloc, free, rand
 
 DTYPE = np.int
 ctypedef np.int_t DTYPE_t
 
-
 cdef choose_color(set not_valid_colors, set valid_colors):
     """
     This method returns a value selected randomly from the values present in the
-    set valid_colors which are not present in the list not_valid_colors.
+    set valid_colors which are not present in the list not_valid_coclealors.
 
     If there is no valid colors from the list, then it is returned the maximum
     value of both lists + 1
@@ -31,9 +29,14 @@ cdef choose_color(set not_valid_colors, set valid_colors):
     """
 
     cdef list possible_values = list(valid_colors - not_valid_colors)
+    cdef int i
 
     if possible_values:
-        return rnd.choice(possible_values)
+        i = rand()%len(possible_values)-1
+        if i == 0:
+            i = 1
+
+        return possible_values[i]
     else:
         return max(valid_colors.union(not_valid_colors)) + 1
 
@@ -74,7 +77,7 @@ cdef np.ndarray[DTYPE_t, ndim=2] greedy_coloring(np.ndarray[DTYPE_t, ndim=2] dis
     # let the algorithm look very similar to the paper
     # pseudo-code
 
-    for i in range(num_nodes):
+    for i from 0 <= i < num_nodes:
         nodes[i] = i+1
 
     # nodes = list(range(1, num_nodes+1))
@@ -83,13 +86,13 @@ cdef np.ndarray[DTYPE_t, ndim=2] greedy_coloring(np.ndarray[DTYPE_t, ndim=2] dis
     c[nodes[0], :] = 0
 
     # Algorithm
-    for index in range(1, num_nodes+1):
+    for index from 1 <= index < num_nodes:
         i = nodes[index]
-        for lb in range(2, diameter+1):
+        for lb from 2 <= lb < diameter:
             not_valid_colors = set()
             valid_colors = set()
 
-            for index2 in range(index):
+            for index2 from 0 <= index2 < index:
                 j = nodes[index2]
 
                 if distances[i-1, j-1] >= lb:
@@ -107,8 +110,13 @@ cdef np.ndarray[DTYPE_t, ndim=2] greedy_coloring(np.ndarray[DTYPE_t, ndim=2] dis
 cdef int * shuffle(int *lst, int size):
   '''A modern Fisher-Yates shuffle popularized by Knuth.
   '''
+  cdef int i, j
+
   for i in range(size-1, -1, -1):
-    j = cython.declare(cython.int, rnd.randint(0, i))
+    if i == 0:
+        j =0
+    else:
+        j = rand() % i
     lst[j], lst[i] = lst[i], lst[j]
   return lst
 
@@ -189,7 +197,7 @@ def box_covering(g, distances=None, num_nodes=None, diameter=None):
     return boxes
 
 
-def number_of_boxes(g, np.ndarray[DTYPE_t, ndim=2] distances, int num_nodes, int diameter):
+cdef dict number_of_boxes(g, np.ndarray[DTYPE_t, ndim=2] distances, int num_nodes, int diameter):
     """
     This method computes the boxes required to cover a graph with all the
     possible box sizes.
@@ -221,7 +229,7 @@ def number_of_boxes(g, np.ndarray[DTYPE_t, ndim=2] distances, int num_nodes, int
             # Every node is in the same box
             boxes[lb] = 1
         else:
-            boxes[lb] = len(np.unique(c[:, lb])) - 1
+            boxes[lb] = np.unique(c[:, lb]).size - 1
 
     return boxes
 
@@ -260,4 +268,4 @@ if __name__ == '__main__':
     for _box in _boxes:
         print(_box)
 
-    print(number_of_boxes(G))
+    # print(number_of_boxes(G))

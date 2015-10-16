@@ -40,7 +40,7 @@ def greedy_coloring(distances, num_nodes, diameter):
                 else:
                     valid_colors.add(c[j][lb])
 
-                c[i][lb] = choose_color(not_valid_colors, valid_colors)
+            c[i][lb] = choose_color(not_valid_colors, valid_colors)
 
     return c
 
@@ -54,3 +54,8 @@ def test():
                            1 2 1 3 1 0')
 
     c = greedy_coloring(distances, 6, 4)
+    # print(c)
+
+
+if __name__ == "__main__":
+    test()
