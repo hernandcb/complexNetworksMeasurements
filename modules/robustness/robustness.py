@@ -9,7 +9,7 @@ import networkit as nk
 import networkx as nx
 import pylab
 import numpy as np
-from pprint import pprint
+import time
 
 centrality = {
     "degree": nk.centrality.DegreeCentrality,
@@ -119,10 +119,16 @@ def plot_robustness_analysis(g, debug=True):
     color = iter(pylab.cm.rainbow(np.linspace(0, 1, len(centrality.keys()))))
 
     for strategy in centrality.keys():
-        print(strategy)
         vertices_removed, component_size, r_index = calculate(g, strategy)
         label = "%s ($R = %4.3f$)" % (strategy, r_index)
         pylab.plot(vertices_removed, component_size, label=label, c=next(color), alpha=0.6, linewidth=2.0)
+
+        if debug:
+            current_time = time.strftime("%d-%m-%Y_%H%M%S")
+            file_name = g.getName() + "_robustness_" + current_time + ".results"
+
+            with open(file_name, 'a') as file_results:
+                print("{} {}".format(strategy, r_index), file=file_results)
 
     pylab.legend(loc="upper right", shadow=False)
     pylab.savefig("test.pdf", format="pdf")
