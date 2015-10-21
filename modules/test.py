@@ -24,7 +24,7 @@ methods = {
 }
 
 
-def test(filename, measure, iterations=1, results_file=None):
+def test(filename, measure, iterations=80, results_file=None):
     g = nk.readGraph(filename, nk.Format.GML)
     g.setName(os.path.basename(filename).split(".", 1)[0])
 
