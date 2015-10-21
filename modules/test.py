@@ -1,9 +1,9 @@
 import time
 import os
-import sys
 import glob
 import networkit as nk
 import dimension.fractalDimension as fd
+import robustness.robustness as robustness
 from config import apconfig
 
 real_networks_folder = apconfig.get_real_networks_full_path()
@@ -19,11 +19,12 @@ networks = {
 }
 
 methods = {
-    "fractalDimension": fd.fractal_dimension
+    "fractalDimension": fd.fractal_dimension,
+    "robustness" : robustness.plot_robustness_analysis
 }
 
 
-def test(filename, measure, iterations=80, results_file=sys.stdout):
+def test(filename, measure, iterations=1, results_file=None):
     g = nk.readGraph(filename, nk.Format.GML)
     g.setName(os.path.basename(filename).split(".", 1)[0])
 
@@ -36,40 +37,46 @@ def test(filename, measure, iterations=80, results_file=sys.stdout):
 
 def test_real_networks():
     current_time = time.strftime("%d-%m-%Y_%H%M%S")
-    results_folder = apconfig.get_results_folder_path()
+    current_folder = os.getcwd()
+    base_results_folder = apconfig.get_results_folder_path()
 
     for network in networks.values():
         network_name = os.path.basename(network).split(".", 1)[0]
 
         # Create folder if not exists
-        if not os.path.exists(results_folder + network_name):
-            os.makedirs(results_folder + network_name)
+        if not os.path.exists(base_results_folder + network_name):
+            os.makedirs(base_results_folder + network_name)
 
-        results_file_name = results_folder + network_name + "/"
-        results_file_name += network_name + "_" + current_time + ".results"
+        os.chdir(base_results_folder + network_name)
+
+        results_file_name = network_name + "_" + current_time + ".results"
 
         with open(results_file_name, 'a') as file:
-            test(network, methods["fractalDimension"], results_file=file)
+            test(network, methods["robustness"], results_file=file)
+
+        os.chdir(current_folder)
 
 
 def test_random_networks():
+    current_folder = os.getcwd()
     current_time = time.strftime("%d-%m-%Y_%H%M%S")
+
     results_folder = apconfig.get_random_results_folder_path()
+    if not os.path.exists(results_folder):
+            os.makedirs(results_folder)
+
+    os.chdir(results_folder)
 
     networks_list = get_files(random_networks_folder, ".gml")
 
     for network in networks_list:
         network_name = os.path.basename(network).rsplit(".", 1)[0]
-
-        # Create folder if not exists
-        if not os.path.exists(results_folder):
-            os.makedirs(results_folder)
-
-        results_file_name = results_folder
-        results_file_name += network_name + "_" + current_time + ".results"
+        results_file_name = network_name + "_" + current_time + ".results"
 
         with open(results_file_name, 'a') as file:
             test(network, methods["fractalDimension"], results_file=file)
+
+    os.chdir(current_folder)
 
 
 def get_files(folder="", extension=""):
