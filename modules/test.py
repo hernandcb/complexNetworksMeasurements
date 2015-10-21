@@ -49,10 +49,11 @@ def test_real_networks():
 
         os.chdir(base_results_folder + network_name)
 
-        results_file_name = network_name + "_" + current_time + ".results"
+        for method in methods:
+            results_file_name = network_name + "_" + method + "_" + current_time + ".results"
 
-        with open(results_file_name, 'a') as file:
-            test(network, methods["robustness"], results_file=file)
+            with open(results_file_name, 'a') as file:
+                test(network, method, results_file=file)
 
         os.chdir(current_folder)
 
@@ -71,10 +72,12 @@ def test_random_networks():
 
     for network in networks_list:
         network_name = os.path.basename(network).rsplit(".", 1)[0]
-        results_file_name = network_name + "_" + current_time + ".results"
 
-        with open(results_file_name, 'a') as file:
-            test(network, methods["fractalDimension"], results_file=file)
+        for method in methods:
+            results_file_name = network_name + "_" + method + "_" + current_time + ".results"
+
+            with open(results_file_name, 'a') as file:
+                test(network, method, results_file=file)
 
     os.chdir(current_folder)
 
