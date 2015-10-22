@@ -67,7 +67,7 @@ def calculate(g, strategy="degree", sequential=True):
         if not sequential:
             rank = ranking(g, strategy)
 
-    return vertices_removed, component_size, (0.5 -(r / n))
+    return vertices_removed, component_size, (r / n)
 
 
 def ranking(gx, measure="degree", reverse=False):
