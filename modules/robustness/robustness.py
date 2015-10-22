@@ -9,7 +9,7 @@ import networkit as nk
 import networkx as nx
 import pylab
 import numpy as np
-from pprint import pprint
+import time
 
 centrality = {
     "degree": nk.centrality.DegreeCentrality,
@@ -24,7 +24,7 @@ def largest_component_size(g):
     return len(sorted(nx.connected_components(g), key=len, reverse=True)[0])
 
 
-def robustness(g, strategy="degree", sequential=True):
+def calculate(g, strategy="degree", sequential=True):
     """
     This method calculates the robustness index of the network by removing the
     nodes from the network and comparing the size of the largest component in
@@ -43,6 +43,11 @@ def robustness(g, strategy="degree", sequential=True):
                       network removed
     robustness_index: The robustness index value
     """
+
+    # Use networkx graph instead of networkit
+    if type(g) is nk.Graph:
+        g = nk.nk2nx(g)
+
     vertices_removed = []
     component_size = []
     n = len(g.nodes())
@@ -53,7 +58,6 @@ def robustness(g, strategy="degree", sequential=True):
 
     for i in range(1, n):
         g.remove_node(rank.pop(0))
-        print(largest_component_size(g) / n)
         r += largest_component_size(g) / n
 
         # print("vr: {}, cs: {}".format(i/n, largest_component_size(g)/n))
@@ -63,7 +67,6 @@ def robustness(g, strategy="degree", sequential=True):
         if not sequential:
             rank = ranking(g, strategy)
 
-    print("R: ", r)
     return vertices_removed, component_size, (0.5 -(r / n))
 
 
@@ -100,7 +103,14 @@ def ranking(gx, measure="degree", reverse=False):
     return [x[0] for x in results]
 
 
-def main(g):
+def plot_robustness_analysis(g, debug=True):
+    """
+    Compute the robustness analisys on a network and plot the results
+
+    Params
+    ---------
+    g: Networkit graph
+    """
     pylab.figure(1, dpi=500)
     pylab.xlabel(r"Fraction of vertices removed ($\rho$)")
     pylab.ylabel(r"Fractional size of largest component ($\sigma$)")
@@ -108,19 +118,32 @@ def main(g):
     # Color generator
     color = iter(pylab.cm.rainbow(np.linspace(0, 1, len(centrality.keys()))))
 
+    current_time = time.strftime("%d-%m-%Y_%H%M%S")
+    file_name = g.getName() + "_robustness_" + current_time
+
+    if debug:
+        file_results = open(file_name + ".results", 'a')
+
     for strategy in centrality.keys():
-        print(strategy)
-        a, b, c = robustness(g.copy(), strategy)
-        label = "%s ($R = %4.3f$)" % (strategy, c)
-        pylab.plot(a, b, label=label, c=next(color), alpha=0.6, linewidth=2.0)
+        vertices_removed, component_size, r_index = calculate(g, strategy)
+        label = "%s ($R = %4.3f$)" % (strategy, r_index)
+        pylab.plot(vertices_removed, component_size, label=label, c=next(color), alpha=0.6, linewidth=2.0)
+
+        if debug:
+            print("{} {}".format(strategy, r_index), file=file_results)
+
+    if debug:
+        file_results.close()
 
     pylab.legend(loc="upper right", shadow=False)
-    pylab.savefig("test.pdf", format="pdf")
+    pylab.savefig(file_name + ".pdf", format="pdf")
     pylab.close(1)
 
 
 if __name__ == "__main__":
     # graph = nx.read_graph6("football.graph6")
-    graph = nx.erdos_renyi_graph(100, 1)
-    print(nx.number_of_nodes(graph))
-    main(graph)
+    # graph = nx.erdos_renyi_graph(100, 1)
+    erg = nk.generators.ErdosRenyiGenerator(100, 0.3, False)
+    graph = erg.generate()
+
+    plot_robustness_analysis(graph)
