@@ -46,12 +46,7 @@ def fractal_dimension(g, iterations=10000, debug=True):
 
     for i in range(iterations):
         result = number_of_boxes(g, distances, num_nodes, diameter)
-        for lb in range(1, diameter + 2):
-            try:
-                results[i][lb-1] = result[lb]
-            except KeyError:
-                msg = "Error: There was not found a box size {} in iteration {}"
-                print(msg.format(lb, i))
+        results[i, :] = result[:]
 
     if debug:
         datetime = time.strftime("%d-%m-%Y_%H%M%S")

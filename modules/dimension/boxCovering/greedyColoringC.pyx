@@ -197,7 +197,7 @@ def box_covering(g, distances=None, num_nodes=None, diameter=None):
     return boxes
 
 
-cdef dict number_of_boxes(g, np.ndarray[DTYPE_t, ndim=2] distances, int num_nodes, int diameter):
+cpdef list number_of_boxes(g, np.ndarray[DTYPE_t, ndim=2] distances, int num_nodes, int diameter):
     """
     This method computes the boxes required to cover a graph with all the
     possible box sizes.
@@ -220,16 +220,15 @@ cdef dict number_of_boxes(g, np.ndarray[DTYPE_t, ndim=2] distances, int num_node
     cdef np.ndarray[DTYPE_t, ndim=2] c = greedy_coloring(distances, num_nodes, diameter)
     cdef int lb
 
-    cdef dict boxes = {}
-    for lb in range(1, diameter+2):
-        if lb is 1:
-            # Each node is in a different box
-            boxes[lb] = num_nodes
-        elif lb == diameter + 1:
-            # Every node is in the same box
-            boxes[lb] = 1
-        else:
-            boxes[lb] = np.unique(c[:, lb]).size - 1
+    cdef list boxes = []
+    # When the box size is one, the number of boxes is equal to the number of nodes
+    boxes.append(num_nodes)
+
+    for lb from 2 <= lb <= diameter:
+        boxes.append(np.unique(c[:, lb]).size - 1)
+
+    # When the box size is bigger than the diameter all the nodes are placed in the same box
+    boxes.append(1)
 
     return boxes
 

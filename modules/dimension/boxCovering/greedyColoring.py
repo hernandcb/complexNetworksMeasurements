@@ -193,16 +193,16 @@ def number_of_boxes(g, distances=None, num_nodes=None, diameter=None):
 
     c = greedy_coloring(distances, num_nodes, diameter)
 
-    boxes = {}
+    boxes = []
     for lb in range(1, diameter+2):
         if lb is 1:
             # Each node is in a different box
-            boxes[lb] = num_nodes
+            boxes.append(num_nodes)
         elif lb == diameter + 1:
             # Every node is in the same box
-            boxes[lb] = 1
+            boxes.append(1)
         else:
-            boxes[lb] = len(np.unique(c[:, lb])) - 1
+            boxes.append(len(np.unique(c[:, lb])) - 1)
 
     return boxes
 
@@ -219,22 +219,3 @@ def test(G):
 
     number_of_boxes(G)
     # print(number_of_boxes(G))
-
-
-if __name__ == '__main__':
-    G = nk.Graph()
-    for i in range(6):
-        G.addNode()
-
-    G.addEdge(0, 4)
-    G.addEdge(0, 5)
-    G.addEdge(1, 2)
-    G.addEdge(1, 3)
-    G.addEdge(2, 5)
-    G.addEdge(4, 5)
-
-    _boxes = box_covering(G)
-    for _box in _boxes:
-        print(_box)
-
-    print(number_of_boxes(G))
