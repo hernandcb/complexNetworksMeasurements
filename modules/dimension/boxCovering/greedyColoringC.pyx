@@ -121,10 +121,11 @@ cdef int * shuffle(int *lst, int size):
   return lst
 
 
-def all_pairs_shortest_path_length(g):
+cpdef np.ndarray[DTYPE_t, ndim=2] all_pairs_shortest_path_length(g):
     """
     This method creates a matrix containing all the shortest paths distances
-    between each pair of nodes in the network.
+    between each pair of nodes in the network. If not exists a path between two
+    nodes then their distance is -1.
 
     Parameters
     ------------
@@ -134,13 +135,22 @@ def all_pairs_shortest_path_length(g):
     ------------
     a matrix containing all the shortest paths distances.
     """
-    cdef int i
+    import sys
+
+    cdef int i, j
     cdef int n = g.numberOfNodes()
+    cdef list row_distances
     cdef np.ndarray[DTYPE_t, ndim=2] distances = np.zeros((n, n), dtype=DTYPE)
 
     for i in range(n):
         bfs = nk.graph.BFS(g, i).run()
-        distances[i, :] = bfs.getDistances()
+        row_distances = bfs.getDistances()
+
+        for j from 0 <= j < len(distances):
+            if row_distances[j] != sys.float_info.max:
+                distances[i, j] = row_distances[j]
+            else:
+                distances[i, j] = -1
 
     return distances
 
