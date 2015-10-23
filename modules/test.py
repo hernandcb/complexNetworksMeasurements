@@ -10,17 +10,17 @@ real_networks_folder = apconfig.get_real_networks_full_path()
 random_networks_folder = apconfig.get_random_networks_full_path()
 
 networks = {
-    "dolphins": real_networks_folder + 'Dolphin social network/dolphins.gml' # ,
-    # "football": real_networks_folder + 'American College football/football.gml',
-    # "celegans": real_networks_folder + 'CElegans/celegans.gml',
-    # "email": real_networks_folder + 'Email network/email.gml',
-    # "eColi": real_networks_folder + 'EColi/EColi.gml',
-    # "power": real_networks_folder + 'Power grid/power.gml'
+    "dolphins": real_networks_folder + 'Dolphin social network/dolphins.gml',
+    "football": real_networks_folder + 'American College football/football.gml',
+    "celegans": real_networks_folder + 'CElegans/celegans.gml',
+    "email": real_networks_folder + 'Email network/email.gml',
+    "eColi": real_networks_folder + 'EColi/EColi.gml',
+    "power": real_networks_folder + 'Power grid/power.gml'
 }
 
 methods = {
     "fractalDimension": fd.fractal_dimension,
-    "robustness" : robustness.plot_robustness_analysis
+    "robustness": robustness.plot_robustness_analysis
 }
 
 
@@ -49,8 +49,8 @@ def test_real_networks():
 
         os.chdir(base_results_folder + network_name)
 
-        for method in methods:
-            results_file_name = network_name + "_" + method + "_" + current_time + ".results"
+        for method_name, method in methods.items():
+            results_file_name = network_name + "_" + method_name + "_" + current_time + ".results"
 
             with open(results_file_name, 'a') as file:
                 test(network, method, results_file=file)
@@ -73,8 +73,8 @@ def test_random_networks():
     for network in networks_list:
         network_name = os.path.basename(network).rsplit(".", 1)[0]
 
-        for method in methods:
-            results_file_name = network_name + "_" + method + "_" + current_time + ".results"
+        for method_name, method in methods.items():
+            results_file_name = network_name + "_" + method_name + "_" + current_time + ".results"
 
             with open(results_file_name, 'a') as file:
                 test(network, method, results_file=file)
