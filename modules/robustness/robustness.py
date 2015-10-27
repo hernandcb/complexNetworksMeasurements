@@ -29,6 +29,9 @@ def average_shortest_path_length(g):
     n = g.numberOfNodes()
     avg = 0.0
 
+    if n == 0:
+        return 0.0
+
     for node in g.nodes():
         dijkstra = nk.graph.Dijkstra(g, node).run()
         avg += sum(filter(lambda a: a != sys.float_info.max, dijkstra.getDistances()))
