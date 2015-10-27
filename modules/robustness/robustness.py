@@ -156,34 +156,43 @@ def plot_robustness_analysis(g, debug=True):
     g: Networkit graph
     """
 
+    fig = pylab.figure(1, dpi=500)
+
+    current_time = time.strftime("%d-%m-%Y_%H%M%S")
+    file_name = g.getName() + "_robustness_analysis_" + "_" + current_time
+
+    index = 1
     for name, comparative_measure in comparative_measures.items():
         for sequential_analysis in [True, False]:
-            current_time = time.strftime("%d-%m-%Y_%H%M%S")
-            file_name = g.getName() + "_robustness_" + name + "_"
-            file_name += "sequential" if sequential_analysis else "simultaneous"
-            file_name += "_" + current_time
+            method_name = "robustness_" + name + "_"
+            method_name += "sequential" if sequential_analysis else "simultaneous"
 
             if debug:
                 file_results = open(file_name + ".results", 'a')
 
-            pylab.figure(1, dpi=500)
-            pylab.xlabel(r"Fraction of vertices removed ($\rho$)")
-            pylab.ylabel(r"Fractional size of " + name + " ($\sigma$)")
+            analysis_plot = fig.add_subplot(2,2, index)
+            analysis_plot.set_xlabel(r"Fraction of vertices removed ($\rho$)")
+            analysis_plot.set_ylabel(r"Fractional size of " + name + " ($\sigma$)")
+            analysis_plot.legend(loc="upper right", shadow=False)
 
             # Color generator
             color = iter(pylab.cm.rainbow(np.linspace(0, 1, len(centrality.keys()))))
 
+            print("----------------------------------------", file=file_results)
+            print(method_name, file=file_results)
             for strategy in centrality.keys():
                 vertices_removed, component_size, r_index = calculate(nk.Graph(g), strategy, name, sequential_analysis)
                 label = "%s ($R = %4.3f$)" % (strategy, r_index)
-                pylab.plot(vertices_removed, component_size, label=label, c=next(color), alpha=0.6, linewidth=2.0)
+                analysis_plot.plot(vertices_removed, component_size, label=label, c=next(color), alpha=0.6, linewidth=2.0)
 
                 if debug:
                     print("{} {}".format(strategy, r_index), file=file_results)
 
-            pylab.legend(loc="upper right", shadow=False)
-            pylab.savefig(file_name + ".pdf", format="pdf")
-            pylab.close(1)
+            index += 1
+
+    pylab.tight_layout()
+    pylab.savefig(file_name + ".png", format="png")
+    pylab.close(1)
 
     if debug:
         file_results.close()
