@@ -11,11 +11,11 @@ import numpy as np
 import time
 
 centrality = {
-    "degree": nk.centrality.DegreeCentrality,
-    "closeness": nk.centrality.Closeness,
-    "betweenness": nk.centrality.Betweenness,
-    "eigenvector": nk.centrality.EigenvectorCentrality,
-    "random": None
+    "Degree": nk.centrality.DegreeCentrality,
+    "Closeness": nk.centrality.Closeness,
+    "Betweenness": nk.centrality.Betweenness,
+    "Eigenvector": nk.centrality.EigenvectorCentrality,
+    "Random": None
 }
 
 
@@ -171,9 +171,10 @@ def plot_robustness_analysis(g, debug=True):
                 file_results = open(file_name + ".results", 'a')
 
             analysis_plot = fig.add_subplot(2,2, index)
+            analysis_plot.set_title(method_name.replace('_', ' '))
             analysis_plot.set_xlabel(r"Fraction of vertices removed ($\rho$)")
             analysis_plot.set_ylabel(r"Fractional size of " + name + " ($\sigma$)")
-            analysis_plot.legend(loc="upper right", shadow=False)
+
 
             # Color generator
             color = iter(pylab.cm.rainbow(np.linspace(0, 1, len(centrality.keys()))))
@@ -188,9 +189,10 @@ def plot_robustness_analysis(g, debug=True):
                 if debug:
                     print("{} {}".format(strategy, r_index), file=file_results)
 
+                analysis_plot.legend(loc="upper right", shadow=False, prop={'size': 6})
             index += 1
 
-    pylab.tight_layout()
+    pylab.tight_layout(pad=3.0, w_pad=2.5, h_pad=2.5)
     pylab.savefig(file_name + ".png", format="png")
     pylab.close(1)
 
@@ -199,9 +201,9 @@ def plot_robustness_analysis(g, debug=True):
 
 
 if __name__ == "__main__":
-    graph = nk.readGraph("football.gml", nk.Format.GML)
+    # graph = nk.readGraph("football.gml", nk.Format.GML)
 
-    #erg = nk.generators.ErdosRenyiGenerator(10, 0.3, False)
-    #graph = erg.generate()
+    erg = nk.generators.ErdosRenyiGenerator(10, 0.3, False)
+    graph = erg.generate()
 
     plot_robustness_analysis(graph)
