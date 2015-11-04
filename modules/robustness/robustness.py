@@ -7,6 +7,7 @@ import operator
 import random as rnd
 import networkit as nk
 import pylab
+import matplotlib
 import numpy as np
 import time
 
@@ -45,13 +46,13 @@ def largest_component_size(g):
 
 
 comparative_measures = {
-    "component_size": largest_component_size,
+    "component": largest_component_size,
     "path_length": average_shortest_path_length
 }
 
 
 base_values = {
-    "component_size": nk.Graph.numberOfNodes,
+    "component": nk.Graph.numberOfNodes,
     # The path length is not compared against anything
     "path_length": lambda x: 1
 }
@@ -72,7 +73,7 @@ def remove_node(network, node):
     network.removeNode(node)
 
 
-def calculate(g, strategy="degree", measure="component_size", sequential=True):
+def calculate(g, strategy="Degree", measure="component_size", sequential=True):
     """
     This method calculates the robustness index of the network by removing the
     nodes from the network and comparing the size of the largest component in
@@ -118,7 +119,7 @@ def calculate(g, strategy="degree", measure="component_size", sequential=True):
     return vertices_removed, comparative_measure_values, (r / n)
 
 
-def ranking(g, measure="degree", reverse=False):
+def ranking(g, measure="Degree", reverse=False):
     """
     This method ranks the nodes of the graph from largest to smallest according
     to a given centrality measure
@@ -135,7 +136,7 @@ def ranking(g, measure="degree", reverse=False):
     -----------
     A list of nodes ranked according to the centrality measure
     """
-    if measure is "random":
+    if measure is "Random":
         nodes = g.nodes()
         rnd.shuffle(nodes)
         return nodes
@@ -156,7 +157,16 @@ def plot_robustness_analysis(g, debug=True):
     g: Networkit graph
     """
 
-    fig = pylab.figure(1, dpi=500)
+    params = {
+        'lines.markersize' : 2,
+        'axes.labelsize': 10,
+        'text.fontsize': 12,
+        'legend.fontsize': 7,
+        'xtick.labelsize': 7,
+        'ytick.labelsize': 7}
+    pylab.rcParams.update(params)
+
+    fig = pylab.figure(1, dpi=800)
 
     current_time = time.strftime("%d-%m-%Y_%H%M%S")
     file_name = g.getName() + "_robustness_analysis_" + "_" + current_time
@@ -164,16 +174,26 @@ def plot_robustness_analysis(g, debug=True):
     index = 1
     for name, comparative_measure in comparative_measures.items():
         for sequential_analysis in [True, False]:
-            method_name = "robustness_" + name + "_"
+            method_name = "Robustness_"
             method_name += "sequential" if sequential_analysis else "simultaneous"
+            method_name += "_" + name
 
             if debug:
                 file_results = open(file_name + ".results", 'a')
 
             analysis_plot = fig.add_subplot(2,2, index)
-            analysis_plot.set_title(method_name.replace('_', ' '))
-            analysis_plot.set_xlabel(r"Fraction of vertices removed ($\rho$)")
-            analysis_plot.set_ylabel(r"Fractional size of " + name + " ($\sigma$)")
+            analysis_plot.set_title(method_name.replace('_', ' '), y=1.08)
+            analysis_plot.set_xlabel(r"Fraction of vertices removed ($\rho$)", size=10)
+
+            # Don't repeat the y-axis on each row
+            if index % 2 != 0:
+                label = r""
+
+                if name == "component":
+                    label += "Fractional "
+
+                label += "size of " + name.replace('_', ' ') + " ($\sigma$)"
+                analysis_plot.set_ylabel(label, size=10)
 
 
             # Color generator
@@ -181,19 +201,20 @@ def plot_robustness_analysis(g, debug=True):
 
             print("----------------------------------------", file=file_results)
             print(method_name, file=file_results)
+
             for strategy in centrality.keys():
                 vertices_removed, component_size, r_index = calculate(nk.Graph(g), strategy, name, sequential_analysis)
-                label = "%s ($R = %4.3f$)" % (strategy, r_index)
+                label = "%s \n($R = %4.3f$)" % (strategy, r_index)
                 analysis_plot.plot(vertices_removed, component_size, label=label, c=next(color), alpha=0.6, linewidth=2.0)
 
                 if debug:
                     print("{} {}".format(strategy, r_index), file=file_results)
 
-                analysis_plot.legend(loc="upper right", shadow=False, prop={'size': 6})
+                lgd = analysis_plot.legend(loc="center left", shadow=False, bbox_to_anchor=(1.0, 0.5))
             index += 1
 
-    pylab.tight_layout(pad=3.0, w_pad=2.5, h_pad=2.5)
-    pylab.savefig(file_name + ".png", format="png")
+    pylab.tight_layout(pad=4.3, w_pad=5.4, h_pad=2.5)
+    pylab.savefig(file_name + ".png", format="png", bbox_extra_artists=(lgd,))
     pylab.close(1)
 
     if debug:
@@ -203,7 +224,8 @@ def plot_robustness_analysis(g, debug=True):
 if __name__ == "__main__":
     # graph = nk.readGraph("football.gml", nk.Format.GML)
 
-    erg = nk.generators.ErdosRenyiGenerator(10, 0.3, False)
+    erg = nk.generators.ErdosRenyiGenerator(2, 0.3, False)
     graph = erg.generate()
 
     plot_robustness_analysis(graph)
+
