@@ -499,6 +499,14 @@ def main(argv):
                       "Eigenvector ($R = %4.3f$)" % VE,
                       "Random ($R = %4.3f$)" % vr),
                       loc="upper right", shadow=False)
+    else:
+        pylab.legend((r"Degree ($R = %4.3f$)" % vd,
+                      "Betweenness ($R = %4.3f$)" % vb,
+                      "Closeness ($R = %4.3f$)" % vc,
+                      "Eigenvector ($R = %4.3f$)" % VE,
+                      "Random ($R = %4.3f$)" % vr),
+                       loc="upper right", shadow=False,
+                       bbox_to_anchor=(1.12, 1.09))
 
 
 
