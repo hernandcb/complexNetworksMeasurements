@@ -17,6 +17,7 @@ def remove_node(network, node):
         network.removeEdge(node, neighbor)
     network.removeNode(node)
 
+
 def test(g):
 
     nodes = g.nodes()
@@ -31,7 +32,7 @@ def test(g):
     y.append(dimension)
     r = 0.0
 
-    for i in range(1, n):
+    for i in range(1, n-1):
         remove_node(g, nodes.pop(0))
         print(i)
         dimension = fd.fractal_dimension(g, iterations=100, debug=False)

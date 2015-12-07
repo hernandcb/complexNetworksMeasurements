@@ -37,9 +37,15 @@ def fractal_dimension(g, iterations=10000, debug=True):
     -----------
     A float value representing the fractal dimension of the network.
     """
+    import networkit as nk
+    import networkx as nx
+    import numpy as np
 
-    num_nodes = g.numberOfNodes()
-    distances = all_pairs_shortest_path_length(g)
+
+    num_nodes =  g.numberOfNodes()
+    # distances = all_pairs_shortest_path_length(g)
+    gx = nk.nk2nx(g)
+    distances = nx.shortest_paths.floyd_warshall_numpy(gx).astype(np.int)
     diameter = np.amax(distances)
 
     results = np.empty((iterations, diameter+1), dtype=int)
