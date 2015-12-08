@@ -121,10 +121,11 @@ cdef int * shuffle(int *lst, int size):
   return lst
 
 
-def all_pairs_shortest_path_length(g):
+cpdef np.ndarray[DTYPE_t, ndim=2] all_pairs_shortest_path_length(g):
     """
     This method creates a matrix containing all the shortest paths distances
-    between each pair of nodes in the network.
+    between each pair of nodes in the network. If not exists a path between two
+    nodes then their distance is -1.
 
     Parameters
     ------------
@@ -134,13 +135,22 @@ def all_pairs_shortest_path_length(g):
     ------------
     a matrix containing all the shortest paths distances.
     """
-    cdef int i
+    import sys
+
+    cdef int i, j
     cdef int n = g.numberOfNodes()
+    cdef list row_distances
     cdef np.ndarray[DTYPE_t, ndim=2] distances = np.zeros((n, n), dtype=DTYPE)
 
     for i in range(n):
         bfs = nk.graph.BFS(g, i).run()
-        distances[i, :] = bfs.getDistances()
+        row_distances = bfs.getDistances()
+
+        for j from 0 <= j < len(distances):
+            if row_distances[j] != sys.float_info.max:
+                distances[i, j] = row_distances[j]
+            else:
+                distances[i, j] = -1
 
     return distances
 
@@ -197,7 +207,7 @@ def box_covering(g, distances=None, num_nodes=None, diameter=None):
     return boxes
 
 
-cdef dict number_of_boxes(g, np.ndarray[DTYPE_t, ndim=2] distances, int num_nodes, int diameter):
+cpdef list number_of_boxes(g, np.ndarray[DTYPE_t, ndim=2] distances, int num_nodes, int diameter):
     """
     This method computes the boxes required to cover a graph with all the
     possible box sizes.
@@ -220,16 +230,15 @@ cdef dict number_of_boxes(g, np.ndarray[DTYPE_t, ndim=2] distances, int num_node
     cdef np.ndarray[DTYPE_t, ndim=2] c = greedy_coloring(distances, num_nodes, diameter)
     cdef int lb
 
-    cdef dict boxes = {}
-    for lb in range(1, diameter+2):
-        if lb is 1:
-            # Each node is in a different box
-            boxes[lb] = num_nodes
-        elif lb == diameter + 1:
-            # Every node is in the same box
-            boxes[lb] = 1
-        else:
-            boxes[lb] = np.unique(c[:, lb]).size - 1
+    cdef list boxes = []
+    # When the box size is one, the number of boxes is equal to the number of nodes
+    boxes.append(num_nodes)
+
+    for lb from 2 <= lb <= diameter:
+        boxes.append(np.unique(c[:, lb]).size - 1)
+
+    # When the box size is bigger than the diameter all the nodes are placed in the same box
+    boxes.append(1)
 
     return boxes
 

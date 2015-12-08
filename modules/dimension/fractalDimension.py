@@ -37,21 +37,22 @@ def fractal_dimension(g, iterations=10000, debug=True):
     -----------
     A float value representing the fractal dimension of the network.
     """
+    import networkit as nk
+    import networkx as nx
+    import numpy as np
 
-    num_nodes = g.numberOfNodes()
-    distances = all_pairs_shortest_path_length(g)
+
+    num_nodes =  g.numberOfNodes()
+    # distances = all_pairs_shortest_path_length(g)
+    gx = nk.nk2nx(g)
+    distances = nx.shortest_paths.floyd_warshall_numpy(gx).astype(np.int)
     diameter = np.amax(distances)
 
     results = np.empty((iterations, diameter+1), dtype=int)
 
     for i in range(iterations):
         result = number_of_boxes(g, distances, num_nodes, diameter)
-        for lb in range(1, diameter + 2):
-            try:
-                results[i][lb-1] = result[lb]
-            except KeyError:
-                msg = "Error: There was not found a box size {} in iteration {}"
-                print(msg.format(lb, i))
+        results[i, :] = result[:]
 
     if debug:
         datetime = time.strftime("%d-%m-%Y_%H%M%S")
