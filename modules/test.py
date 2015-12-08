@@ -49,8 +49,8 @@ def test_real_networks():
 
         os.chdir(base_results_folder + network_name)
 
-        for method in methods:
-            results_file_name = network_name + "_" + method + "_" + current_time + ".results"
+        for method_name, method in methods.items():
+            results_file_name = network_name + "_" + method_name + "_" + current_time + ".results"
 
             with open(results_file_name, 'a') as file:
                 test(network, method, results_file=file)
@@ -73,8 +73,8 @@ def test_random_networks():
     for network in networks_list:
         network_name = os.path.basename(network).rsplit(".", 1)[0]
 
-        for method in methods:
-            results_file_name = network_name + "_" + method + "_" + current_time + ".results"
+        for method_name, method in methods.items():
+            results_file_name = network_name + "_" + method_name + "_" + current_time + ".results"
 
             with open(results_file_name, 'a') as file:
                 test(network, method, results_file=file)
