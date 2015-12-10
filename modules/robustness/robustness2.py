@@ -86,7 +86,7 @@ def betweenness_apl(g, recalculate=False):
     x.append(0)
     y.append(average_path_length * 1. / initial_apl)
     r = 0.0
-    for i in range(1, n):
+    for i in range(1, n-1):
         g.remove_node(l.pop(0)[0])
         if recalculate:
             m = networkx.betweenness_centrality(g)
@@ -171,7 +171,7 @@ def closeness_apl(g, recalculate=False):
     y.append(average_path_length * 1. / initial_apl)
 
     r = 0.0
-    for i in range(1, n):
+    for i in range(1, n-1):
         g.remove_node(l.pop(0)[0])
         if recalculate:
             m = networkx.closeness_centrality(g)
@@ -213,7 +213,7 @@ def degree(g, recalculate=False):
     x.append(0)
     y.append(len(largest_component) * 1. / n)
     r = 0.0
-    for i in range(1, n - 1):
+    for i in range(1, n ):
         g.remove_node(l.pop(0)[0])
         if recalculate:
             m = networkx.degree_centrality(g)
@@ -256,7 +256,7 @@ def degree_apl(g, recalculate=False):
     y.append(average_path_length * 1. / initial_apl)
 
     r = 0.0
-    for i in range(1, n - 2):
+    for i in range(1, n-1):
         g.remove_node(l.pop(0)[0])
         if recalculate:
             m = networkx.degree_centrality(g)
@@ -344,7 +344,7 @@ def eigenvector_apl(g, recalculate=False):
     initial_apl = average_path_length
 
     r = 0.0
-    for i in range(1, n - 1):
+    for i in range(1, n -1):
         g.remove_node(l.pop(0)[0])
         if recalculate:
 
@@ -468,7 +468,7 @@ def main(argv):
         x1, y1, vd = degree(g.copy(), recalculate)
         x2, y2, vb = betweenness(g.copy(), recalculate)
         x3, y3, vc = closeness(g.copy(), recalculate)
-        x4, y4, VE = eigenvector(g.copy(), recalculate)
+        # x4, y4, VE = eigenvector(g.copy(), recalculate)
         x5, y5, vr = rand(g.copy())
 
         pylab.figure(1, dpi=500)
@@ -479,39 +479,56 @@ def main(argv):
         x1, y1, vd = degree_apl(g.copy(), recalculate)
         x2, y2, vb = betweenness_apl(g.copy(), recalculate)
         x3, y3, vc = closeness_apl(g.copy(), recalculate)
-        x4, y4, VE = eigenvector_apl(g.copy(), recalculate)
+        # x4, y4, VE = eigenvector_apl(g.copy(), recalculate)
         x5, y5, vr = rand_apl(g.copy())
 
         pylab.figure(1, dpi=500)
         pylab.xlabel(r"Fraction of vertices removed ($\rho$)")
         pylab.ylabel(r"Average path length ($\sigma$)")
 
+    print("x1 : {}".format(len(x1)))
+    print("y1 : {}".format(len(y1)))
+    print("y2 : {}".format(len(y2)))
+    print("y3 : {}".format(len(y3)))
+    print("y5 : {}".format(len(y5)))
+
     pylab.plot(x1, y1, "b-", alpha=0.6, linewidth=2.0)
     pylab.plot(x2, y2, "g-", alpha=0.6, linewidth=2.0)
     pylab.plot(x3, y3, "r-", alpha=0.6, linewidth=2.0)
-    pylab.plot(x4, y4, "c-", alpha=0.6, linewidth=2.0)
+    # pylab.plot(x4, y4, "c-", alpha=0.6, linewidth=2.0)
     pylab.plot(x5, y5, "k-", alpha=0.6, linewidth=2.0)
+
+    # Generate csv file
+    import numpy as np
 
     if not apl:
         pylab.legend((r"Degree ($R = %4.3f$)" % vd,
                       "Betweenness ($R = %4.3f$)" % vb,
                       "Closeness ($R = %4.3f$)" % vc,
-                      "Eigenvector ($R = %4.3f$)" % VE,
+                      # "Eigenvector ($R = %4.3f$)" % VE,
                       "Random ($R = %4.3f$)" % vr),
                       loc="upper right", shadow=False)
     else:
         pylab.legend((r"Degree ($R = %4.3f$)" % vd,
                       "Betweenness ($R = %4.3f$)" % vb,
                       "Closeness ($R = %4.3f$)" % vc,
-                      "Eigenvector ($R = %4.3f$)" % VE,
+                      # "Eigenvector ($R = %4.3f$)" % VE,
                       "Random ($R = %4.3f$)" % vr),
                        loc="upper right", shadow=False,
                        bbox_to_anchor=(1.12, 1.09))
 
-
-
     pylab.savefig(outfile, format="png")
     pylab.close(1)
+
+
+    matrix = np.matrix([x1, y1, y2, y3, y5])
+    filename = outfile.rsplit(".", 1)[0] + ".csv"
+    header = " , degree, betweeness, closeness, random"
+    separator = ", "
+
+    np.savetxt(filename, matrix.transpose(), fmt="%2.5f", delimiter=separator,
+               header=header, comments="")
+
 
 if __name__ == "__main__":
     main(sys.argv[1:])
