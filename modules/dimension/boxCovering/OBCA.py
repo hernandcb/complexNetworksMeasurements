@@ -4,6 +4,7 @@
 
 import networkx as nx
 import operator
+import sys
 
 
 def obca(g):
@@ -15,6 +16,7 @@ def obca(g):
     nodes = next(zip(*sorted(results.items(), key=operator.itemgetter(1))))
     results = dict()
 
+    results[1] = [[node] for node in g.nodes()]
     for lb in range(2, lb_max):
         covered_frequency = [0] * len(g.nodes())
         boxes = list()
@@ -31,11 +33,15 @@ def obca(g):
             index = 0
             while True:
                 node = box[index]
-                for j in range(index+1, len(box)):
+                j = index+1
+
+                while j < len(box):
                     neighbor = box[j]
 
                     if nx.shortest_path_length(g, node, neighbor) >= lb:
                         box.remove(neighbor)
+
+                    j += 1
 
                 index += 1
                 if index >= len(box):
@@ -62,13 +68,26 @@ def obca(g):
                     covered_frequency[node_index] -= 1
                 boxes.remove(box)
 
-        print("lb: {}, boxes: {}, cf: {}".format(lb, boxes, covered_frequency))
+        # print("lb: {}, boxes: {}, cf: {}".format(lb, boxes, covered_frequency))
         results[lb] = boxes
 
+    results[lb_max] = g.nodes()
+
+    # print(results)
     return results
 
 
-if __name__ == "__main__":
+def number_of_boxes(g):
+    results = obca(g)
+    nboxes = dict()
+
+    for box_size, boxes in results.items():
+        nboxes[box_size] = len(boxes)
+
+    return nboxes
+
+
+def test():
     g = nx.Graph()
     g.add_edge(1, 2)
     g.add_edge(1, 4)
@@ -78,3 +97,10 @@ if __name__ == "__main__":
     g.add_edge(5, 6)
 
     obca(g)
+
+
+if __name__ == "__main__":
+    infile = sys.argv[1]
+    network = nx.read_gml(infile)
+
+    print(number_of_boxes(network))
