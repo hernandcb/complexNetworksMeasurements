@@ -71,7 +71,9 @@ def obca(g):
         # print("lb: {}, boxes: {}, cf: {}".format(lb, boxes, covered_frequency))
         results[lb] = boxes
 
-    results[lb_max] = g.nodes()
+    temp = list()
+    temp.append(g.nodes())
+    results[lb_max] = temp
 
     # print(results)
     return results
