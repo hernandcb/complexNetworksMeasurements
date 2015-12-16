@@ -20,22 +20,28 @@ centrality = {
 }
 
 
-def average_shortest_path_length(g):
+cdef average_shortest_path_length(g):
     """
     TODO - Specify that this method also works with disconnected networks but
     i'm not sure if it does in the proper way
 
     """
     import sys
-    n = g.numberOfNodes()
-    avg = 0.0
+    cdef int n = g.numberOfNodes()
+    cdef double avg = 0.0
+    cdef int node, i
+    cdef list distances
 
     if n == 0:
         return 0.0
 
     for node in g.nodes():
         dijkstra = nk.graph.Dijkstra(g, node).run()
-        avg += sum(filter(lambda a: a != sys.float_info.max, dijkstra.getDistances()))
+
+        distances = dijkstra.getDistances()
+        for i from 0 <= i < len(distances):
+            if distances[i] != sys.float_info.max:
+                avg += distances[i]
 
     return avg / (n*(n-1))
 
@@ -52,7 +58,7 @@ comparative_measures = {
 
 
 base_values = {
-    "component": largest_component_size,
+    "component": nk.Graph.numberOfNodes,
     # The path length is not compared against anything
     "path_length": lambda x: 1
 }
@@ -73,7 +79,7 @@ def remove_node(network, node):
     network.removeNode(node)
 
 
-def calculate(g, strategy="Degree", measure="component_size", sequential=True):
+cpdef calculate(g, str strategy="Degree", str measure="component_size", sequential=True):
     """
     This method calculates the robustness index of the network by removing the
     nodes from the network and comparing the size of the largest component in
@@ -93,8 +99,11 @@ def calculate(g, strategy="Degree", measure="component_size", sequential=True):
                           fraction of the network removed
     robustness_index: The robustness index value
     """
-    vertices_removed = []
-    comparative_measure_values = []
+    cdef list vertices_removed = []
+    cdef list comparative_measure_values = []
+    cdef list rank
+    cdef int n, base_value
+    cdef double r
 
     base_value = base_values[measure](g)
     n = len(g.nodes())
@@ -196,7 +205,6 @@ def plot_robustness_analysis(g, debug=True):
                 analysis_plot.set_ylabel(label, size=10)
 
 
-
             # Color generator
             color = iter(pylab.cm.rainbow(np.linspace(0, 1, len(centrality.keys()))))
 
@@ -222,8 +230,8 @@ def plot_robustness_analysis(g, debug=True):
         file_results.close()
 
 
-if __name__ == "__main__":
-# def test():
+# if __name__ == "__main__":
+def test():
     graph = nk.readGraph("football.gml", nk.Format.GML)
 
     # erg = nk.generators.ErdosRenyiGenerator(2, 0.3, False)

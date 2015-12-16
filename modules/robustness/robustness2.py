@@ -1,17 +1,17 @@
 #!/usr/bin/python
 
 """
-This script performs robustness analysis on the given network, 
-which involves removing nodes from the network at random, or in reverse 
-order of centrality measures (degree, betweenness, closeness, and 
-eigenvector), and comparing the size of the largest component in the 
+This script performs robustness analysis on the given network,
+which involves removing nodes from the network at random, or in reverse
+order of centrality measures (degree, betweenness, closeness, and
+eigenvector), and comparing the size of the largest component in the
 network to the fraction of nodes removed.
 
 Usage: python robustness.py <infile> <outfile> <recalculate>
 
-where infile is the name of the network file in gml format, outfile is the 
-name of the output (pdf) file in which the results of the analysis is 
-saved, and recalculate (True of False) specifies if the targeted attack is 
+where infile is the name of the network file in gml format, outfile is the
+name of the output (pdf) file in which the results of the analysis is
+saved, and recalculate (True of False) specifies if the targeted attack is
 simultaneous (False), or sequential (True).
 """
 
@@ -25,11 +25,11 @@ import sys
 
 def betweenness(g, recalculate=False):
     """
-    Performs robustness analysis based on betweenness centrality,  
-    on the network specified by infile using sequential (recalculate = True) 
-    or simultaneous (recalculate = False) approach. Returns a list 
-    with fraction of nodes removed, a list with the corresponding sizes of 
-    the largest component of the network, and the overall vulnerability 
+    Performs robustness analysis based on betweenness centrality,
+    on the network specified by infile using sequential (recalculate = True)
+    or simultaneous (recalculate = False) approach. Returns a list
+    with fraction of nodes removed, a list with the corresponding sizes of
+    the largest component of the network, and the overall vulnerability
     of the network.
     """
 
@@ -39,16 +39,16 @@ def betweenness(g, recalculate=False):
     y = []
 
     largest_component = max(networkx.connected_components(g), key=len)
-    
+
     n = len(g.nodes())
     x.append(0)
     y.append(len(largest_component) * 1. / n)
     r = 0.0
-    for i in range(1, n):
+    for i in range(1, n-1):
         g.remove_node(l.pop(0)[0])
         if recalculate:
             m = networkx.betweenness_centrality(g)
-            l = sorted(m.items(), key=operator.itemgetter(1), 
+            l = sorted(m.items(), key=operator.itemgetter(1),
                        reverse=True)
         largest_component = max(networkx.connected_components(g), key=len)
         x.append(i * 1. / n)
@@ -103,7 +103,7 @@ def betweenness_apl(g, recalculate=False):
 
         average_path_length = average_path_length / number_of_components
 
-        x.append(i * 1. / initial_apl)
+        x.append(i * 1. / n)
         r += average_path_length
         y.append(average_path_length)
     return x, y, r / initial_apl
@@ -111,11 +111,11 @@ def betweenness_apl(g, recalculate=False):
 
 def closeness(g, recalculate=False):
     """
-    Performs robustness analysis based on closeness centrality,  
-    on the network specified by infile using sequential (recalculate = True) 
-    or simultaneous (recalculate = False) approach. Returns a list 
-    with fraction of nodes removed, a list with the corresponding sizes of 
-    the largest component of the network, and the overall vulnerability 
+    Performs robustness analysis based on closeness centrality,
+    on the network specified by infile using sequential (recalculate = True)
+    or simultaneous (recalculate = False) approach. Returns a list
+    with fraction of nodes removed, a list with the corresponding sizes of
+    the largest component of the network, and the overall vulnerability
     of the network.
     """
 
@@ -128,11 +128,11 @@ def closeness(g, recalculate=False):
     x.append(0)
     y.append(len(largest_component) * 1. / n)
     r = 0.0
-    for i in range(1, n):
+    for i in range(1, n-1):
         g.remove_node(l.pop(0)[0])
         if recalculate:
             m = networkx.closeness_centrality(g)
-            l = sorted(m.items(), key=operator.itemgetter(1), 
+            l = sorted(m.items(), key=operator.itemgetter(1),
                        reverse=True)
         largest_component = max(networkx.connected_components(g), key=len)
         x.append(i * 1. / n)
@@ -188,7 +188,7 @@ def closeness_apl(g, recalculate=False):
 
         average_path_length = average_path_length / number_of_components
 
-        x.append(i * 1. / initial_apl)
+        x.append(i * 1. / n)
         r += average_path_length * 1. / initial_apl
         y.append(average_path_length * 1. / initial_apl)
     return x, y, r / initial_apl
@@ -196,11 +196,11 @@ def closeness_apl(g, recalculate=False):
 
 def degree(g, recalculate=False):
     """
-    Performs robustness analysis based on degree centrality,  
-    on the network specified by infile using sequential (recalculate = True) 
-    or simultaneous (recalculate = False) approach. Returns a list 
-    with fraction of nodes removed, a list with the corresponding sizes of 
-    the largest component of the network, and the overall vulnerability 
+    Performs robustness analysis based on degree centrality,
+    on the network specified by infile using sequential (recalculate = True)
+    or simultaneous (recalculate = False) approach. Returns a list
+    with fraction of nodes removed, a list with the corresponding sizes of
+    the largest component of the network, and the overall vulnerability
     of the network.
     """
 
@@ -213,11 +213,11 @@ def degree(g, recalculate=False):
     x.append(0)
     y.append(len(largest_component) * 1. / n)
     r = 0.0
-    for i in range(1, n ):
+    for i in range(1, n-1):
         g.remove_node(l.pop(0)[0])
         if recalculate:
             m = networkx.degree_centrality(g)
-            l = sorted(m.items(), key=operator.itemgetter(1), 
+            l = sorted(m.items(), key=operator.itemgetter(1),
                        reverse=True)
         largest_component = max(networkx.connected_components(g), key=len)
         x.append(i * 1. / n)
@@ -274,7 +274,7 @@ def degree_apl(g, recalculate=False):
 
         average_path_length = average_path_length / number_of_components
 
-        x.append(i * 1. / initial_apl)
+        x.append(i * 1. / n)
         r += average_path_length * 1. / initial_apl
         y.append(average_path_length * 1. / initial_apl)
     return x, y, r / initial_apl
@@ -282,11 +282,11 @@ def degree_apl(g, recalculate=False):
 
 def eigenvector(g, recalculate=False):
     """
-    Performs robustness analysis based on eigenvector centrality,  
-    on the network specified by infile using sequential (recalculate = True) 
-    or simultaneous (recalculate = False) approach. Returns a list 
-    with fraction of nodes removed, a list with the corresponding sizes of 
-    the largest component of the network, and the overall vulnerability 
+    Performs robustness analysis based on eigenvector centrality,
+    on the network specified by infile using sequential (recalculate = True)
+    or simultaneous (recalculate = False) approach. Returns a list
+    with fraction of nodes removed, a list with the corresponding sizes of
+    the largest component of the network, and the overall vulnerability
     of the network.
     """
 
@@ -365,7 +365,7 @@ def eigenvector_apl(g, recalculate=False):
 
         average_path_length = average_path_length / number_of_components
 
-        x.append(i * 1. / initial_apl)
+        x.append(i * 1. / n)
         r += average_path_length * 1. / initial_apl
         y.append(average_path_length * 1. / initial_apl)
     return x, y, r / initial_apl
@@ -373,9 +373,9 @@ def eigenvector_apl(g, recalculate=False):
 
 def rand(g):
     """
-    Performs robustness analysis based on random attack, on the network 
-    specified by infile. Returns a list with fraction of nodes removed, a 
-    list with the corresponding sizes of the largest component of the 
+    Performs robustness analysis based on random attack, on the network
+    specified by infile. Returns a list with fraction of nodes removed, a
+    list with the corresponding sizes of the largest component of the
     network, and the overall vulnerability of the network.
     """
 
@@ -388,7 +388,7 @@ def rand(g):
     x.append(0)
     y.append(len(largest_component) * 1. / n)
     r = 0.0
-    for i in range(1, n):
+    for i in range(1, n-1):
         g.remove_node(l.pop(0)[0])
         largest_component = max(networkx.connected_components(g), key=len)
         x.append(i * 1. / n)
@@ -435,7 +435,7 @@ def rand_apl(g):
 
         average_path_length = average_path_length / number_of_components
 
-        x.append(i * 1. / initial_apl)
+        x.append(i * 1. / n)
         r += average_path_length * 1. / initial_apl
         y.append(average_path_length * 1. / initial_apl)
     return x, y, r / initial_apl
@@ -526,8 +526,9 @@ def main(argv):
     header = " , degree, betweeness, closeness, random"
     separator = ", "
 
+
     np.savetxt(filename, matrix.transpose(), fmt="%2.5f", delimiter=separator,
-               header=header, comments="")
+              header=header, comments="")
 
 
 if __name__ == "__main__":
