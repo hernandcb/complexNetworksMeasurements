@@ -79,12 +79,22 @@ def obca(g):
     return results
 
 
-def number_of_boxes(g):
+def number_of_boxes_dict(g):
     results = obca(g)
     nboxes = dict()
 
     for box_size, boxes in results.items():
         nboxes[box_size] = len(boxes)
+
+    return nboxes
+
+
+def number_of_boxes(g):
+    results = obca(g)
+    nboxes = list()
+
+    for box_size, boxes in results.items():
+        nboxes.append(len(boxes))
 
     return nboxes
 
