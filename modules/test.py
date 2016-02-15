@@ -10,21 +10,21 @@ real_networks_folder = apconfig.get_real_networks_full_path()
 random_networks_folder = apconfig.get_random_networks_full_path()
 
 networks = {
-    "dolphins": real_networks_folder + 'Dolphin social network/dolphins.gml',
-    "football": real_networks_folder + 'American College football/football.gml',
-    "celegans": real_networks_folder + 'CElegans/celegans.gml',
-    "email": real_networks_folder + 'Email network/email.gml',
-    "eColi": real_networks_folder + 'EColi/EColi.gml',
-    "power": real_networks_folder + 'Power grid/power.gml'
+    # "dolphins": real_networks_folder + 'Dolphin social network/dolphins.gml',
+    # "football": real_networks_folder + 'American College football/football.gml',
+    # "celegans": real_networks_folder + 'CElegans/celegans.gml',
+    #"karate": real_networks_folder + 'karate/karate.gml',
+    #"miserables": real_networks_folder + 'miserables/lesmiserables.gml'
+    "barabasi": real_networks_folder + 'barabasi_n300_m8.gml'
 }
 
 methods = {
     "fractalDimension": fd.fractal_dimension,
-    "robustness": robustness.plot_robustness_analysis
+    # "robustness": robustness.plot_robustness_analysis
 }
 
 
-def test(filename, measure, iterations=80, results_file=None):
+def test(filename, measure, iterations=1, results_file=None):
     g = nk.readGraph(filename, nk.Format.GML)
     g.setName(os.path.basename(filename).split(".", 1)[0])
 
@@ -32,7 +32,7 @@ def test(filename, measure, iterations=80, results_file=None):
         g = g.toUndirected()
 
     for i in range(iterations):
-        print(measure(g), file=results_file)
+        print(measure(nk.nk2nx(g)), file=results_file)
 
 
 def test_real_networks():
@@ -42,6 +42,7 @@ def test_real_networks():
 
     for network in networks.values():
         network_name = os.path.basename(network).split(".", 1)[0]
+        print("Network: ", network_name)
 
         # Create folder if not exists
         if not os.path.exists(base_results_folder + network_name):
