@@ -163,10 +163,5 @@ if __name__ == "__main__":
     else:
         recalculate = False
 
-    # The file is readed using networkit because there are memory issues with
-    # the networkx gml reader.
-    import networkit as nk
-    gk = nk.readGraph(infile, nk.Format.GML)
-    g = nk.nxadapter.nk2nx(gk)
-
-    plot_functions(gk, outfile, recalculate)
+    g = nk.readGraph(infile, nk.Format.GML)
+    plot_functions(g, outfile, recalculate)
