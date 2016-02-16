@@ -35,11 +35,12 @@ import sys
 import random
 import operator
 import networkx as nx
+import networkit as nk
 import pylab
 import dimension.fractalDimension as fd
 
 
-def remove_nodes(g, selection_method, recalculate=False):
+def calculate_fractal_dimension(g, selection_method, recalculate=False):
     """
     This method removes nodes of a network according to the ranking generated
     by selection_method. When the parameter recalculate is True the ranking
@@ -61,8 +62,13 @@ def remove_nodes(g, selection_method, recalculate=False):
           x[i] of the network has been removed.
     """
 
-    m = selection_method(g)
-    l = sorted(m.items(), key=operator.itemgetter(1), reverse=True)
+    if selection_method != random_ranking:
+        m = selection_method(g).run().ranking()
+        l = sorted(m, key=lambda tup:tup[1], reverse=True)
+    else:
+        m = selection_method(g)
+        l = sorted(m.items(), key=operator.itemgetter(1), reverse=True)
+
     x = []
     y = []
 
@@ -73,17 +79,35 @@ def remove_nodes(g, selection_method, recalculate=False):
     y.append(dimension)
 
     for i in range(1, n-1):
-        g.remove_node(l.pop(0)[0])
+        remove_node(g, l.pop(0)[0])
         if recalculate:
-            m = selection_method(g)
-            l = sorted(m.items(), key=operator.itemgetter(1),
-                       reverse=True)
+            if selection_method != random_ranking:
+                m = selection_method(g).run().ranking()
+                l = sorted(m, key=lambda tup:tup[1], reverse=True)
+            else:
+                m = selection_method(g)
+                l = sorted(m.items(), key=operator.itemgetter(1), reverse=True)
 
         dimension = fd.fractal_dimension(g, iterations=100, debug=False)
         x.append(i * 1. / n)
         y.append(dimension)
 
     return x, y
+
+
+def remove_node(network, node):
+    """
+    This method removes a node from the network. To do so, it first removes all
+    the edges adjacent to the node to be removed.
+
+    Params
+    --------
+    network: networkit graph
+    node:    node identifier
+    """
+    for neighbor in network.neighbors(node):
+        network.removeEdge(node, neighbor)
+    network.removeNode(node)
 
 
 def random_ranking(g):
@@ -95,10 +119,10 @@ def random_ranking(g):
 
 
 def plot_functions(g, outfile, recalculate=False):
-    x1, y1 = remove_nodes(g.copy(), nx.degree_centrality, recalculate)
-    x2, y2 = remove_nodes(g.copy(), nx.betweenness_centrality, recalculate)
-    x3, y3 = remove_nodes(g.copy(), nx.closeness_centrality, recalculate)
-    x5, y5 = remove_nodes(g.copy(), random_ranking, recalculate)
+    x1, y1 = calculate_fractal_dimension(nk.Graph(g), nk.centrality.DegreeCentrality, recalculate)
+    x2, y2 = calculate_fractal_dimension(nk.Graph(g), nk.centrality.Betweenness, recalculate)
+    x3, y3 = calculate_fractal_dimension(nk.Graph(g), nk.centrality.Closeness, recalculate)
+    x5, y5 = calculate_fractal_dimension(nk.Graph(g), random_ranking, recalculate)
 
     pylab.figure(1, dpi=500)
     pylab.xlabel(r"Fraction of vertices removed ($\rho$)")
@@ -143,6 +167,6 @@ if __name__ == "__main__":
     # the networkx gml reader.
     import networkit as nk
     gk = nk.readGraph(infile, nk.Format.GML)
-    g = nk.nk2nx(gk)
+    g = nk.nxadapter.nk2nx(gk)
 
-    plot_functions(g, outfile, recalculate)
+    plot_functions(gk, outfile, recalculate)

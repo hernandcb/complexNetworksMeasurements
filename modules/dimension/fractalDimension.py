@@ -13,7 +13,7 @@ pyximport.install()
 from .boxCovering.greedyColoringC import *
 
 
-def fractal_dimension(gx, iterations=1000, debug=True):
+def fractal_dimension(g, iterations=1000, debug=True):
     """
     This method computes the fractal dimension (D) of a network performing a box
     covering and analysing the relation between the minimum number of boxes (Nb)
@@ -41,10 +41,9 @@ def fractal_dimension(gx, iterations=1000, debug=True):
     import networkx as nx
     import numpy as np
 
-
-    num_nodes =  gx.number_of_nodes()
+    gx = nk.nxadapter.nk2nx(g)
+    num_nodes = gx.number_of_nodes()
     # distances = all_pairs_shortest_path_length(g)
-    g = nk.nx2nk(gx)
     distances = nx.shortest_paths.floyd_warshall_numpy(gx).astype(np.int)
     diameter = np.amax(distances)
 
