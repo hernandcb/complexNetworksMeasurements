@@ -30,7 +30,7 @@ def choose_color(not_valid_colors, valid_colors):
         return max(valid_colors.union(not_valid_colors)) + 1
 
 
-def greedy_coloring(g):
+def greedy_coloring(distances, num_nodes, diameter):
     """
     Compute the minimal set of boxes to cover a graph given a box length.
     This method uses the box values between [2, network_diameter]
@@ -49,9 +49,6 @@ def greedy_coloring(g):
     2007(03):P03006, 2007.
     http://iopscience.iop.org/1742-5468/2007/03/P03006/
     """
-    print("Start greedy_coloring")
-    num_nodes = g.numberOfNodes()
-    diameter = int(nk.distance.Diameter.exactDiameter(g))
 
     c = np.empty((num_nodes+1, diameter+2), dtype=int)
     c.fill(-1)
@@ -59,33 +56,54 @@ def greedy_coloring(g):
     # let the algorithm look very similar to the paper
     # pseudo-code
 
-    nodes = list(range(num_nodes))
+    nodes = list(range(1, num_nodes+1))
     rnd.shuffle(nodes)
 
     c[nodes[0], :] = 0
 
-    index = 1
-
     # Algorithm
-    for i in nodes[1:-1]:
-        # Calculate distances from i to all the other nodes
-        bfs = nk.graph.BFS(g, g.nodes().index(i)).run()
-        print("i:", index)
+    for i in nodes[1:]:
         for lb in range(2, diameter+1):
             not_valid_colors = set()
             valid_colors = set()
 
-            for j in nodes[:index]:
-                if bfs.distance(j) >= lb:
+            for j in nodes[:i]:
+
+                if distances[i-1, j-1] >= lb:
                     not_valid_colors.add(c[j, lb])
                 else:
                     valid_colors.add(c[j, lb])
 
                 c[i, lb] = choose_color(not_valid_colors, valid_colors)
-        index += 1
 
-    print("End greedy_coloring")
     return c
+
+
+def all_pairs_shortest_path_length(g):
+    """
+    This method creates a matrix containing all the shortest paths distances
+    between each pair of nodes in the network.
+
+    Parameters
+    ------------
+    A networkit graph
+
+    Returns
+    ------------
+    a matrix containing all the shortest paths distances.
+    """
+    n = g.numberOfNodes()
+
+    if n >= 65535:
+        distances = np.zeros((n, n), dtype=np.uint32)
+    else:
+        distances = np.zeros((n, n), dtype=np.uint16)
+
+    for i in range(n):
+        bfs = nk.graph.BFS(g, i).run()
+        distances[i, :] = np.array(bfs.getDistances())
+
+    return distances
 
 
 def box_covering(g, distances=None, num_nodes=None, diameter=None):
@@ -108,7 +126,16 @@ def box_covering(g, distances=None, num_nodes=None, diameter=None):
 
     """
 
-    c = greedy_coloring(g)
+    if num_nodes is None:
+        num_nodes = g.numberOfNodes()
+
+    if distances is None:
+        distances = all_pairs_shortest_path_length(g)
+
+    if diameter is None:
+        diameter = np.amax(distances)
+
+    c = greedy_coloring(distances, num_nodes, diameter)
 
     # Creation of boxes by color
     boxes = []
@@ -133,7 +160,7 @@ def box_covering(g, distances=None, num_nodes=None, diameter=None):
     return boxes
 
 
-def number_of_boxes(g):
+def number_of_boxes(g, distances=None, num_nodes=None, diameter=None):
     """
     This method computes the boxes required to cover a graph with all the
     possible box sizes.
@@ -142,6 +169,10 @@ def number_of_boxes(g):
     Parameters
     -------------------
     G:          Networkit graph
+    distances:  Matrix containing all the shortest path lengths between all
+                nodes in ``G``
+    num_nodes:  Number of nodes in the graph
+    diameter:   Diameter of the graph
 
     Returns
     ------------------
@@ -149,9 +180,18 @@ def number_of_boxes(g):
     every box length:   { box_length: number_of_boxes}
 
     """
-    diameter = int(nk.distance.Diameter.exactDiameter(g))
-    num_nodes = g.numberOfNodes()
-    c = greedy_coloring(g)
+
+    if num_nodes is None:
+        num_nodes = g.numberOfNodes()
+
+    if distances is None:
+        distances = all_pairs_shortest_path_length(g)
+
+    print(np.amax(distances))
+    if diameter is None:
+        diameter = np.amax(distances)
+
+    c = greedy_coloring(distances, num_nodes, diameter)
 
     boxes = []
     for lb in range(1, diameter+2):
@@ -177,11 +217,5 @@ def test(G):
     if G.isDirected():
         G = G.toUndirected()
 
-    # number_of_boxes(G)
-    print(number_of_boxes(G))
-
-
-if __name__ == "__main__":
-    import networkx as nx
-    gk = nk.readGraph("../../../data/realNetworks/EColi/EColi.gml", nk.Format.GML)
-    test(gk)
+    number_of_boxes(G)
+    # print(number_of_boxes(G))
