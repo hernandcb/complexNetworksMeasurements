@@ -59,28 +59,30 @@ def greedy_coloring(g):
     # let the algorithm look very similar to the paper
     # pseudo-code
 
-    nodes = list(range(1, num_nodes+1))
-    # rnd.shuffle(nodes)
+    nodes = list(range(num_nodes))
+    rnd.shuffle(nodes)
 
     c[nodes[0], :] = 0
 
+    index = 1
+
     # Algorithm
-    for i in nodes[1:]:
+    for i in nodes[1:-1]:
         # Calculate distances from i to all the other nodes
-        bfs = nk.graph.BFS(g, i).run()
-        print("i:", i, " - ", bfs)
+        bfs = nk.graph.BFS(g, g.nodes().index(i)).run()
+        print("i:", index)
         for lb in range(2, diameter+1):
             not_valid_colors = set()
             valid_colors = set()
 
-            for j in nodes[:i]:
-
+            for j in nodes[:index]:
                 if bfs.distance(j) >= lb:
                     not_valid_colors.add(c[j, lb])
                 else:
                     valid_colors.add(c[j, lb])
 
                 c[i, lb] = choose_color(not_valid_colors, valid_colors)
+        index += 1
 
     print("End greedy_coloring")
     return c
@@ -147,7 +149,6 @@ def number_of_boxes(g):
     every box length:   { box_length: number_of_boxes}
 
     """
-    print("Start number_of_boxes")
     diameter = int(nk.distance.Diameter.exactDiameter(g))
     num_nodes = g.numberOfNodes()
     c = greedy_coloring(g)
@@ -163,7 +164,6 @@ def number_of_boxes(g):
         else:
             boxes.append(len(np.unique(c[:, lb])) - 1)
 
-    print("Start number_of_boxes")
     return boxes
 
 
@@ -177,5 +177,11 @@ def test(G):
     if G.isDirected():
         G = G.toUndirected()
 
-    number_of_boxes(G)
-    # print(number_of_boxes(G))
+    # number_of_boxes(G)
+    print(number_of_boxes(G))
+
+
+if __name__ == "__main__":
+    import networkx as nx
+    gk = nk.readGraph("../../../data/realNetworks/EColi/EColi.gml", nk.Format.GML)
+    test(gk)
