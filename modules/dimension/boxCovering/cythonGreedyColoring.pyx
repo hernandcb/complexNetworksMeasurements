@@ -2,15 +2,21 @@
 # Author: Hernán David Carvajal <carvajal.hernandavid at gmail.com>
 # Tested in python-3.4.3
 
-import networkit as nk
-import numpy as np
+cimport networkit as nk
 import random as rnd
+import numpy as np
+
+cimport numpy as np
+from libc.stdlib cimport malloc, free, rand
+
+DTYPE = np.int
+ctypedef np.int_t DTYPE_t
 
 
-def choose_color(not_valid_colors, valid_colors):
+cdef choose_color(set not_valid_colors, set valid_colors):
     """
     This method returns a value selected randomly from the values present in the
-    set valid_colors which are not present in the list not_valid_colors.
+    set valid_colors which are not present in the list not_valid_coclealors.
 
     If there is no valid colors from the list, then it is returned the maximum
     value of both lists + 1
@@ -22,12 +28,18 @@ def choose_color(not_valid_colors, valid_colors):
     valid_colors: A list of selectable numbers
     """
 
-    possible_values = list(valid_colors - not_valid_colors)
+    cdef list possible_values = list(valid_colors - not_valid_colors)
+    cdef int i
 
     if possible_values:
-        return rnd.choice(possible_values)
+        i = rand()%len(possible_values)-1
+        if i == 0:
+            i = 1
+
+        return possible_values[i]
     else:
         return max(valid_colors.union(not_valid_colors)) + 1
+
 
 
 def greedy_coloring(g):
@@ -50,10 +62,10 @@ def greedy_coloring(g):
     http://iopscience.iop.org/1742-5468/2007/03/P03006/
     """
 
-    num_nodes = g.numberOfNodes()
-    diameter = int(nk.distance.Diameter.exactDiameter(g))
-
-    c = np.empty((num_nodes+1, diameter+2), dtype=int)
+    cdef int num_nodes = g.numberOfNodes()
+    cdef int diameter = int(nk.distance.Diameter.exactDiameter(g))
+    cdef set valid_colors, not_valid_colors
+    cdef np.ndarray[DTYPE_t, ndim=2] c = np.empty((num_nodes+1, diameter+2), dtype=DTYPE)
     c.fill(-1)
     # Matrix C will not use the 0 column and 0 row to
     # let the algorithm look very similar to the paper
@@ -144,15 +156,16 @@ def number_of_boxes(g):
 
     Returns
     ------------------
-    This method returns a dictionary specifying the number of boxes found for
-    every box length:   { box_length: number_of_boxes}
+    This method returns a list specifying the number of boxes found for
+    every box length
 
     """
-    diameter = int(nk.distance.Diameter.exactDiameter(g))
-    num_nodes = g.numberOfNodes()
-    c = greedy_coloring(g)
+    cdef np.ndarray[DTYPE_t, ndim=2] c = greedy_coloring(g)
+    cdef int diameter = int(nk.distance.Diameter.exactDiameter(g))
+    cdef int num_nodes = g.numberOfNodes()
+    cdef int lb
+    cdef list boxes = []
 
-    boxes = []
     for lb in range(1, diameter+2):
         if lb is 1:
             # Each node is in a different box
