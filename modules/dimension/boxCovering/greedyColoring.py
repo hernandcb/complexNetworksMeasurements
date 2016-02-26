@@ -49,7 +49,6 @@ def greedy_coloring(g):
     2007(03):P03006, 2007.
     http://iopscience.iop.org/1742-5468/2007/03/P03006/
     """
-
     num_nodes = g.numberOfNodes()
     diameter = int(nk.distance.Diameter.exactDiameter(g))
 
@@ -70,7 +69,6 @@ def greedy_coloring(g):
     for i in nodes[1:-1]:
         # Calculate distances from i to all the other nodes
         bfs = nk.graph.BFS(g, g.nodes().index(i)).run()
-
         for lb in range(2, diameter+1):
             not_valid_colors = set()
             valid_colors = set()
@@ -166,21 +164,21 @@ def number_of_boxes(g):
     return boxes
 
 
-def test():
+def test(G):
     """
     _boxes = box_covering(G)
     for _box in _boxes:
         print(_box)
     """
-    import networkx as nx
-    g = nk.nxadapter.nx2nk(nx.erdos_renyi_graph(10, 0.6))
 
-    if g.isDirected():
-        g = g.toUndirected()
+    if G.isDirected():
+        G = G.toUndirected()
 
-    number_of_boxes(g)
-    # print(number_of_boxes(g))
+    # number_of_boxes(G)
+    print(number_of_boxes(G))
 
 
 if __name__ == "__main__":
-    test()
+    import networkx as nx
+    gk = nk.nxadapter.nx2nk(nx.er)
+    test(gk)

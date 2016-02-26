@@ -10,7 +10,7 @@ import math
 import pyximport
 pyximport.install()
 
-from .boxCovering.greedyColoringC import *
+from .boxCovering.cythonGreedyColoring import *
 
 
 def fractal_dimension(g, iterations=1000, debug=True):
@@ -37,21 +37,13 @@ def fractal_dimension(g, iterations=1000, debug=True):
     -----------
     A float value representing the fractal dimension of the network.
     """
-    import networkit as nk
-    import networkx as nx
-    import numpy as np
-
-    gx = nk.nxadapter.nk2nx(g)
-    num_nodes = gx.number_of_nodes()
-    # distances = all_pairs_shortest_path_length(g)
-    distances = nx.shortest_paths.floyd_warshall_numpy(gx).astype(np.int)
-    diameter = np.amax(distances)
-
+    diameter = int(nk.distance.Diameter.exactDiameter(g))
+    num_nodes = g.numberOfNodes()
     results = np.empty((iterations, diameter+1), dtype=int)
 
     for i in range(iterations):
         if diameter > 0:
-            result = number_of_boxes(g, distances, num_nodes, diameter)
+            result = number_of_boxes(nk.nxadapter.nk2nx(g))
         else:
             result = [num_nodes]
         results[i, :] = result[:]
@@ -73,16 +65,13 @@ def fractal_dimension(g, iterations=1000, debug=True):
     return math.fabs(slope)
 
 
-def main(argv):
-    infile = argv[0]
-    graph = nk.readGraph(infile, nk.Format.GML)
-    graph.setName(os.path.basename(infile))
+def main(n=100, iterations=100):
 
-    if graph.isDirected():
-        graph = graph.toUndirected()
+    import networkx as nx
+    g = nk.nxadapter.nx2nk(nx.erdos_renyi_graph(n, 0.6))
 
-    print(fractal_dimension(graph, 1, True))
+    print(fractal_dimension(g, iterations, False))
 
 
 if __name__ == "__main__":
-    main(sys.argv[1:])
+    main()

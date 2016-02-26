@@ -2,7 +2,7 @@
 # Author: Hernán David Carvajal <carvajal.hernandavid at gmail.com>
 # Tested in python-3.4.3
 
-cimport networkit as nk
+import networkit as nk
 import random as rnd
 import numpy as np
 
@@ -42,7 +42,7 @@ cdef choose_color(set not_valid_colors, set valid_colors):
 
 
 
-def greedy_coloring(g):
+def greedy_coloring(g, diameter=None):
     """
     Compute the minimal set of boxes to cover a graph given a box length.
     This method uses the box values between [2, network_diameter]
@@ -62,8 +62,10 @@ def greedy_coloring(g):
     http://iopscience.iop.org/1742-5468/2007/03/P03006/
     """
 
+    if diameter is None:
+        diameter = int(nk.distance.Diameter.exactDiameter(g))
+
     cdef int num_nodes = g.numberOfNodes()
-    cdef int diameter = int(nk.distance.Diameter.exactDiameter(g))
     cdef set valid_colors, not_valid_colors
     cdef np.ndarray[DTYPE_t, ndim=2] c = np.empty((num_nodes+1, diameter+2), dtype=DTYPE)
     c.fill(-1)
@@ -95,7 +97,6 @@ def greedy_coloring(g):
 
                 c[i, lb] = choose_color(not_valid_colors, valid_colors)
         index += 1
-
     return c
 
 
@@ -144,7 +145,7 @@ def box_covering(g, distances=None, num_nodes=None, diameter=None):
     return boxes
 
 
-def number_of_boxes(g):
+def number_of_boxes(gx, diameter=None):
     """
     This method computes the boxes required to cover a graph with all the
     possible box sizes.
@@ -160,8 +161,12 @@ def number_of_boxes(g):
     every box length
 
     """
-    cdef np.ndarray[DTYPE_t, ndim=2] c = greedy_coloring(g)
-    cdef int diameter = int(nk.distance.Diameter.exactDiameter(g))
+    g = nk.nxadapter.nx2nk(gx)
+
+    if diameter is None:
+        diameter = int(nk.distance.Diameter.exactDiameter(g))
+
+    cdef np.ndarray[DTYPE_t, ndim=2] c = greedy_coloring(g, diameter)
     cdef int num_nodes = g.numberOfNodes()
     cdef int lb
     cdef list boxes = []
