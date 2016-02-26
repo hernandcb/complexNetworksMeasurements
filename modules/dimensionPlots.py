@@ -37,7 +37,7 @@ import operator
 import networkx as nx
 import networkit as nk
 import pylab
-import dimension.fractalDimensionT as fd
+import dimension.fractalDimension as fd
 
 
 def calculate_fractal_dimension(g, selection_method, recalculate=False):
