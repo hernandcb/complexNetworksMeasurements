@@ -73,13 +73,14 @@ def greedy_coloring(g, diameter=None):
     # let the algorithm look very similar to the paper
     # pseudo-code
 
-    nodes = list(range(num_nodes))
+    nodes = g.nodes()
     rnd.shuffle(nodes)
 
-    c[nodes[0], :] = 0
+    c[ g.nodes().index(nodes[0]), :] = 0
 
     index = 1
-
+    print("nodes: ", nodes)
+    print("g.nodes: ", g.nodes())
     # Algorithm
     for i in nodes[1:-1]:
         # Calculate distances from i to all the other nodes
@@ -91,11 +92,11 @@ def greedy_coloring(g, diameter=None):
 
             for j in nodes[:index]:
                 if bfs.distance(j) >= lb:
-                    not_valid_colors.add(c[j, lb])
+                    not_valid_colors.add(c[g.nodes().index(j), lb])
                 else:
-                    valid_colors.add(c[j, lb])
+                    valid_colors.add(c[g.nodes().index(j), lb])
 
-                c[i, lb] = choose_color(not_valid_colors, valid_colors)
+                c[g.nodes().index(i), lb] = choose_color(not_valid_colors, valid_colors)
         index += 1
     return c
 
@@ -145,7 +146,7 @@ def box_covering(g, distances=None, num_nodes=None, diameter=None):
     return boxes
 
 
-def number_of_boxes(gx, diameter=None):
+def number_of_boxes(g, diameter=None):
     """
     This method computes the boxes required to cover a graph with all the
     possible box sizes.
@@ -161,8 +162,6 @@ def number_of_boxes(gx, diameter=None):
     every box length
 
     """
-    g = nk.nxadapter.nx2nk(gx)
-
     if diameter is None:
         diameter = int(nk.distance.Diameter.exactDiameter(g))
 
