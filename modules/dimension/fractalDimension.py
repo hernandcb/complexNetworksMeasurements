@@ -41,9 +41,11 @@ def fractal_dimension(g, iterations=1000, debug=True):
     num_nodes = g.numberOfNodes()
     results = np.empty((iterations, diameter+1), dtype=int)
 
+    # print("Results: \n", len(results))
+
     for i in range(iterations):
         if diameter > 0:
-            result = number_of_boxes(nk.nxadapter.nk2nx(g))
+            result = number_of_boxes(g)
         else:
             result = [num_nodes]
         results[i, :] = result[:]
