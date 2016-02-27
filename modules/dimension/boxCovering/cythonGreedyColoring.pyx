@@ -77,10 +77,8 @@ def greedy_coloring(g, diameter=None):
     rnd.shuffle(nodes)
 
     c[ g.nodes().index(nodes[0]), :] = 0
-
     index = 1
-    print("nodes: ", nodes)
-    print("g.nodes: ", g.nodes())
+
     # Algorithm
     for i in nodes[1:-1]:
         # Calculate distances from i to all the other nodes
