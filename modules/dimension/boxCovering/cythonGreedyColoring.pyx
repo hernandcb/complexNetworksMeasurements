@@ -13,7 +13,7 @@ DTYPE = np.int
 ctypedef np.int_t DTYPE_t
 
 
-cdef choose_color(set not_valid_colors, set valid_colors):
+cdef int choose_color(set not_valid_colors, set valid_colors):
     """
     This method returns a value selected randomly from the values present in the
     set valid_colors which are not present in the list not_valid_coclealors.
@@ -41,8 +41,29 @@ cdef choose_color(set not_valid_colors, set valid_colors):
         return max(valid_colors.union(not_valid_colors)) + 1
 
 
+cdef int chooseColor2(std::set<int> validColors, std::set<int> notValidColors){
+  std::vector<int> possibleValues;
 
-def greedy_coloring(g, diameter=None):
+  std::set_difference(validColors.begin(), validColors.end(),
+    notValidColors.begin(), notValidColors.end(), std::inserter(possibleValues,
+    possibleValues.begin()));
+
+  if( possibleValues.size() > 0 ){
+    // Pick a random value from the vector
+    std::random_device rd; 	std::mt19937 engine{rd()};
+    std::uniform_int_distribution<int> dist(0, possibleValues.size() - 1);
+
+    return possibleValues[dist(engine)];
+  } else {
+    // Get the max value from both sets, sum 1 and return it
+    std::set<int>::iterator v1 = std::max_element(validColors.begin(), validColors.end());
+    std::set<int>::iterator v2 = std::max_element(notValidColors.begin(), notValidColors.end());
+
+    return (*v1 > *v2) ? *v1 +1 : *v2 +1;
+  }
+}
+
+cdef np.ndarray[DTYPE_t, ndim=2] greedy_coloring(g):
     """
     Compute the minimal set of boxes to cover a graph given a box length.
     This method uses the box values between [2, network_diameter]
@@ -62,9 +83,7 @@ def greedy_coloring(g, diameter=None):
     http://iopscience.iop.org/1742-5468/2007/03/P03006/
     """
 
-    if diameter is None:
-        diameter = int(nk.distance.Diameter.exactDiameter(g))
-
+    cdef int diameter = int(nk.distance.Diameter.exactDiameter(g))
     cdef int num_nodes = g.numberOfNodes()
     cdef set valid_colors, not_valid_colors
     cdef np.ndarray[DTYPE_t, ndim=2] c = np.empty((num_nodes+1, diameter+2), dtype=DTYPE)
@@ -73,10 +92,11 @@ def greedy_coloring(g, diameter=None):
     # let the algorithm look very similar to the paper
     # pseudo-code
 
-    nodes = g.nodes()
+    cdef list nodes = g.nodes()
     rnd.shuffle(nodes)
 
     c[ g.nodes().index(nodes[0]), :] = 0
+
     index = 1
 
     # Algorithm
@@ -99,7 +119,7 @@ def greedy_coloring(g, diameter=None):
     return c
 
 
-def box_covering(g, distances=None, num_nodes=None, diameter=None):
+cdef box_covering(g, distances=None, num_nodes=None, diameter=None):
     """
     This method computes the boxes required to cover a graph with all the
     possible box sizes.
@@ -119,7 +139,7 @@ def box_covering(g, distances=None, num_nodes=None, diameter=None):
 
     """
 
-    c = greedy_coloring(g)
+    cdef np.ndarray[DTYPE_t, ndim=2] c = greedy_coloring(g)
 
     # Creation of boxes by color
     boxes = []
@@ -144,7 +164,7 @@ def box_covering(g, distances=None, num_nodes=None, diameter=None):
     return boxes
 
 
-def number_of_boxes(g, diameter=None):
+cdef number_of_boxes(g, int diameter=None):
     """
     This method computes the boxes required to cover a graph with all the
     possible box sizes.
@@ -163,7 +183,7 @@ def number_of_boxes(g, diameter=None):
     if diameter is None:
         diameter = int(nk.distance.Diameter.exactDiameter(g))
 
-    cdef np.ndarray[DTYPE_t, ndim=2] c = greedy_coloring(g, diameter)
+    cdef np.ndarray[DTYPE_t, ndim=2] c = greedy_coloring(g)
     cdef int num_nodes = g.numberOfNodes()
     cdef int lb
     cdef list boxes = []
