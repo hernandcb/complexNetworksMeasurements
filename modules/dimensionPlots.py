@@ -21,20 +21,18 @@ PARAMETERS
        infile:      The gml file where the network is stored
        outfile:     The name of the file where the data will be saved. The
                     png file produced will have the same name
-       recalculate: [True ¡ False ] Indicates if the centrality measures
-                    should be updated each time a node is removed.
+       recalculate: [True | False ] Indicates if the centrality measures should
+                    be updated each time a node is removed.
 
        example:
             > python dimensionPlots.py karate.gml karate.png False
 
 AUTHOR
-      Hernán D. Carvajal
+      Hernan D. Carvajal
 """
-
 import sys
 import random
 import operator
-import networkx as nx
 import networkit as nk
 import pylab
 import dimension.fractalDimension as fd
@@ -61,13 +59,13 @@ def calculate_fractal_dimension(g, selection_method, recalculate=False):
     y:    y[i] contains the fractal dimension of the network when a fraction
           x[i] of the network has been removed.
     """
-
     if selection_method != random_ranking:
         m = selection_method(g).run().ranking()
         l = sorted(m, key=lambda tup:tup[1], reverse=True)
     else:
         m = selection_method(g)
         l = sorted(m.items(), key=operator.itemgetter(1), reverse=True)
+
 
     x = []
     y = []
@@ -80,10 +78,14 @@ def calculate_fractal_dimension(g, selection_method, recalculate=False):
 
     for i in range(1, n-1):
         remove_node(g, l.pop(0)[0])
+
         if recalculate:
             if selection_method != random_ranking:
-                m = selection_method(g).run().ranking()
-                l = sorted(m, key=lambda tup:tup[1], reverse=True)
+                try:
+                    m = selection_method(g).run().ranking()
+                    l = sorted(m, key=lambda tup:tup[1], reverse=True)
+                except:
+                    break
             else:
                 m = selection_method(g)
                 l = sorted(m.items(), key=operator.itemgetter(1), reverse=True)
