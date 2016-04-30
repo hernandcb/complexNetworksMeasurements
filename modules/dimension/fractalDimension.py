@@ -99,6 +99,10 @@ def is_fractal_network(number_of_boxes, box_lengths):
     nRows, _ = number_of_boxes.shape
     variances = np.std(number_of_boxes, axis=0) / nRows
     normalized_box_lengths = box_lengths / np.max(box_lengths)
+    print("Variances: ")
+    print(variances)
+    print("Normalized box lengths: ")
+    print(normalized_box_lengths)
 
     slope, _ = np.polyfit(normalized_box_lengths, variances, 1)
     print("Validation of fractality, slope: {}".format(slope))
