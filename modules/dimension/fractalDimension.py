@@ -58,9 +58,9 @@ def fractal_dimension(g, iterations=1000, debug=True):
             results[i, :] = result[:]
         else:
             difference = len(results[i, :]) - len(result[:])
-            otra = [1 for i in range(difference)]
-            result[:].extend(otra)
-            results[i, :] = otra
+            arrayOfOnes = [1 for i in range(difference)]
+            result[:].extend(arrayOfOnes)
+            results[i, :] = arrayOfOnes
 
     if debug:
         datetime = time.strftime("%d-%m-%Y_%H%M%S")
@@ -78,24 +78,33 @@ def fractal_dimension(g, iterations=1000, debug=True):
     log_box_length = np.log(boxes_length)
     log_mean_number_of_nodes = np.log(mean_nodes_per_box)
 
-    #slope, intercept = np.polyfit(log_box_length, log_mean_number_of_nodes, 1)
-
-    # """
-    # Use this to calculate the fit error
-
-    sslope, sintercept, sr_value, sp_value, sstd_err = stats.linregress(log_box_length,log_mean_number_of_nodes)
-    print("scipy dimension: {}, error: {}".format( math.fabs(sslope), 1 - sr_value**2 ))
-
     if len(boxes_length) is 2:
         # There is no error fitting a line to connect two points
         slope, intercept = np.polyfit(log_box_length, log_mean_number_of_nodes, 1)
     else:
-        p, cov = np.polyfit(log_box_length, log_mean_number_of_nodes, 1, cov=True)
+        p, cov, _, _, _ = np.polyfit(log_box_length, log_mean_number_of_nodes, 1, full=True)
         slope = p[0]
-        print("numpy dimension: {}, error: {}".format( math.fabs(slope), np.sqrt(np.diag(cov))**2 ))
-    # """
+
+    is_fractal_network(results, boxes_length)
 
     return math.fabs(slope)
+
+
+def is_fractal_network(number_of_boxes, box_lengths):
+    """
+    Calculate the slope of line resulting of plot:
+      the variance of the number of boxes  VS  ( l_b / max(l_b))
+    if the value of the slope is 1.5 the network do NOT is fractal
+    """
+    nRows, _ = number_of_boxes.shape
+    variances = np.std(number_of_boxes, axis=0) / nRows
+    normalized_box_lengths = box_lengths / np.max(box_lengths)
+
+    slope, _ = np.polyfit(normalized_box_lengths, variances, 1)
+    print("Validation of fractality, slope: {}".format(slope))
+
+    return slope
+
 
 def number_of_boxes(g):
     """
@@ -134,7 +143,7 @@ def number_of_boxes(g):
     return boxes
 
 
-def main(n=10, iterations=1):
+def main(n=10, iterations=100):
 
     import networkx as nx
     g = nk.nxadapter.nx2nk(nx.erdos_renyi_graph(n, 0.6))
